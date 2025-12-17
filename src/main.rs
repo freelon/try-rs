@@ -196,11 +196,11 @@ fn run_app(
                 .block(Block::default().borders(Borders::ALL).title(" Folders "))
                 .highlight_style(
                     Style::default()
-                        .bg(Color::Blue)
+                        .bg(Color::DarkGray)
                         .fg(Color::White)
                         .add_modifier(Modifier::BOLD),
                 )
-                .highlight_symbol(">> ");
+                .highlight_symbol("→ ");
 
             let mut state = ListState::default();
             state.select(Some(app.selected_index));
