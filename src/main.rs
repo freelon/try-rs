@@ -99,7 +99,7 @@ fn run_app(
             // 2. Widget de Input (Search)
             let search_text = Paragraph::new(app.query.clone())
                 .style(Style::default().fg(Color::Yellow))
-                .block(Block::default().borders(Borders::ALL).title(" Search "));
+                .block(Block::default().borders(Borders::ALL).title(" 📁 Search "));
             f.render_widget(search_text, chunks[0]);
 
             // 3. Widget de Lista
