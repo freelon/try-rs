@@ -8,6 +8,7 @@ use crossterm::{
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use ratatui::{prelude::*, widgets::*};
+use std::process::Stdio;
 use std::{fs, io, path::PathBuf, time::SystemTime};
 
 // Modelo de dados (igual ao anterior)
@@ -193,46 +194,111 @@ fn main() -> Result<()> {
     let tries_dir = home.join("src/tries");
     fs::create_dir_all(&tries_dir)?;
 
-    // 2. Setup do Terminal (Raw Mode)
-    enable_raw_mode()?;
-    // let mut stdout = io::stdout();
-    let mut stderr = io::stderr();
-    execute!(stderr, EnterAlternateScreen)?;
-    let backend = CrosstermBackend::new(stderr);
-    let mut terminal = Terminal::new(backend)?;
+    // 2. Verifica argumentos da linha de comando
+    let args: Vec<String> = std::env::args().collect();
 
-    // 3. Roda a aplicação
-    let app = App::new(tries_dir.clone());
-    let res = run_app(&mut terminal, app);
+    // A variável 'selection' vai guardar o nome ou URL escolhido.
+    // Pode vir dos argumentos (CLI) ou da interface (TUI).
+    let selection_result: Option<String>;
 
-    // 4. Restaura o terminal (Muito importante!)
-    disable_raw_mode()?;
-    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
-    terminal.show_cursor()?;
+    if args.len() > 1 {
+        // MODO CLI: O usuário passou um argumento (ex: try-rs https://...)
+        // Pulamos a interface gráfica totalmente.
+        selection_result = Some(args[1].clone());
+    } else {
+        // MODO TUI: Nenhum argumento, abre a interface visual.
 
-    // 5. Processa o resultado e imprime para o Shell
-    if let Ok(Some(selection)) = res {
+        enable_raw_mode()?;
+        let mut stderr = io::stderr();
+        execute!(stderr, EnterAlternateScreen)?;
+        let backend = CrosstermBackend::new(stderr);
+        let mut terminal = Terminal::new(backend)?;
+
+        let app = App::new(tries_dir.clone());
+        // Roda o app e captura o resultado
+        selection_result = run_app(&mut terminal, app)?;
+
+        // Restaura o terminal
+        disable_raw_mode()?;
+        execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+        terminal.show_cursor()?;
+    }
+
+    // 3. Processa o resultado (Comum para os dois modos)
+    if let Some(selection) = selection_result {
         let target_path = tries_dir.join(&selection);
 
+        // CASO 1: A pasta já existe? Entra nela.
         if target_path.exists() {
-            // Pasta existe: retorna o comando para entrar nela
             println!("cd '{}'", target_path.to_string_lossy());
         } else {
-            // Pasta nova: cria com data
-            let now = Local::now();
-            let date_prefix = now.format("%Y-%m-%d").to_string();
-            // Evita duplicar a data se o usuário já digitou uma
-            let new_name = if selection.starts_with(&date_prefix) {
-                selection
-            } else {
-                format!("{}-{}", date_prefix, selection)
-            };
+            // CASO 2: É um URL Git? Clona!
+            if is_git_url(&selection) {
+                let repo_name = extract_repo_name(&selection);
 
-            let new_path = tries_dir.join(&new_name);
-            fs::create_dir_all(&new_path)?;
-            println!("cd '{}'", new_path.to_string_lossy());
+                let now = Local::now();
+                let date_prefix = now.format("%Y-%m-%d").to_string();
+                let folder_name = format!("{}-{}", date_prefix, repo_name);
+                let new_path = tries_dir.join(&folder_name);
+
+                eprintln!("A clonar {} para {}...", selection, folder_name);
+
+                let status = std::process::Command::new("git")
+                    .arg("clone")
+                    .arg(&selection)
+                    .arg(&new_path)
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::inherit())
+                    .status();
+
+                match status {
+                    Ok(s) if s.success() => {
+                        println!("cd '{}'", new_path.to_string_lossy());
+                    }
+                    _ => {
+                        eprintln!("Erro: Falha ao clonar o repositório.");
+                    }
+                }
+            } else {
+                // CASO 3: Cria pasta vazia
+                let now = Local::now();
+                let date_prefix = now.format("%Y-%m-%d").to_string();
+
+                let new_name = if selection.starts_with(&date_prefix) {
+                    selection
+                } else {
+                    format!("{}-{}", date_prefix, selection)
+                };
+
+                let new_path = tries_dir.join(&new_name);
+                fs::create_dir_all(&new_path)?;
+                println!("cd '{}'", new_path.to_string_lossy());
+            }
         }
     }
 
     Ok(())
+}
+
+// Verifica se a string parece um link Git
+fn is_git_url(s: &str) -> bool {
+    s.starts_with("http://")
+        || s.starts_with("https://")
+        || s.starts_with("git@")
+        || s.starts_with("ssh://")
+}
+
+// Extrai um nome limpo do repositório (ex: "github.com/tobi/try.git" -> "try")
+fn extract_repo_name(url: &str) -> String {
+    // Remove o sufixo .git se existir
+    let clean_url = url.trim_end_matches(".git");
+
+    // Pega a última parte após a barra '/' ou dois pontos ':' (comum em ssh)
+    if let Some(last_part) = clean_url.rsplit(|c| c == '/' || c == ':').next() {
+        if !last_part.is_empty() {
+            return last_part.to_string();
+        }
+    }
+    // Nome genérico caso falhe a deteção
+    "repo-clonado".to_string()
 }
