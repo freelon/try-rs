@@ -123,12 +123,5 @@ You can also bypass the UI:
 🤝 Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
-## 🗺️ Roadmap
-
-- [ ] **Workspaces:** Support for multiple, named workspaces (e.g., `try-rs --workspace work`).
-- [ ] **Configuration Wizard:** An interactive first-time setup to generate the config file.
-- [ ] **More Actions:** Add `rename` and `archive` actions to the TUI.
-- [ ] **Theme Support:** Allow users to customize the TUI colors.
-
 📄 License
 [MIT](LICENSE)
