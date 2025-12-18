@@ -109,14 +109,6 @@ impl App {
                     eprintln!("raw os error: {:?}", e.raw_os_error());
                 }
             }
-
-            // Attempts to remove the directory
-            // if fs::remove_dir_all(&path_to_remove).is_ok() {
-            //     // Remove from the in-memory 'all_entries' list
-            //     self.all_entries.retain(|e| e.name != entry.name);
-            //     // Updates the search to refresh the filtered list
-            //     self.update_search();
-            // }
         }
         // Returns to normal mode
         self.mode = AppMode::Normal;
@@ -166,8 +158,6 @@ fn run_app(
     terminal: &mut Terminal<CrosstermBackend<io::Stderr>>,
     mut app: App,
 ) -> Result<Option<String>> {
-    // let home = dirs::home_dir().expect("Folder not found");
-    // let tries_dir = home.join("src/tries");
 
     let tries_dir = get_configuration_path();
 
@@ -218,8 +208,8 @@ fn run_app(
             state.select(Some(app.selected_index));
             f.render_stateful_widget(list, chunks[1], &mut state);
 
-            // --- NOVO: Widget de Rodapé (Help) ---
-            // Usamos 'Line' e 'Span' para poder estilizar partes do texto (negrito nas teclas)
+            // --- Footer Widget (Help) ---
+            // We use 'Line' and 'Span' to style parts of the text (bold keys)
             let help_text = Line::from(vec![
                 Span::styled("↑↓", Style::default().add_modifier(Modifier::BOLD)),
                 Span::raw(": Navigate  "),
@@ -232,12 +222,12 @@ fn run_app(
             ]);
 
             let help_message = Paragraph::new(help_text)
-                .style(Style::default().fg(Color::DarkGray)) // Cor discreta
-                .alignment(Alignment::Center); // Centralizado (opcional, pode remover para ficar à esquerda)
+                .style(Style::default().fg(Color::DarkGray)) 
+                .alignment(Alignment::Center);
 
             f.render_widget(help_message, chunks[2]);
 
-            // --- DESENHO DO POPUP (Se estiver no modo DeleteConfirm) ---
+            // --- DRAWING THE POPUP (If in DeleteConfirm mode) ---
             if app.mode == AppMode::DeleteConfirm {
                 if let Some(selected) = app.filtered_entries.get(app.selected_index) {
                     let msg = format!("Delete '{}'? (y/n)", selected.name);
@@ -246,16 +236,16 @@ fn run_app(
             }
         })?;
 
-        // --- TRATAMENTO DE TECLAS ---
+        // --- KEY HANDLING ---
         if event::poll(std::time::Duration::from_millis(50))? {
             if let Event::Key(key) = event::read()? {
-                // O comportamento depende do modo
+                // Behavior depends on the mode
                 match app.mode {
                     AppMode::Normal => match key.code {
                         KeyCode::Char(c) => {
-                            // Ctrl+D para deletar
+                            // Ctrl+D to delete
                             if c == 'd' && key.modifiers.contains(event::KeyModifiers::CONTROL) {
-                                // Só entra no modo delete se houver algo selecionado
+                                // Only enter delete mode if something is selected
                                 if !app.filtered_entries.is_empty() {
                                     app.mode = AppMode::DeleteConfirm;
                                 }
@@ -293,14 +283,12 @@ fn run_app(
 
                     AppMode::DeleteConfirm => match key.code {
                         KeyCode::Char('y') | KeyCode::Char('Y') => {
-                            // Confirmou!
                             app.delete_selected(&tries_dir);
                         }
                         KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
-                            // Cancelou
                             app.mode = AppMode::Normal;
                         }
-                        _ => {} // Ignora outras teclas no popup
+                        _ => {} 
                     },
                 }
             }
@@ -310,17 +298,17 @@ fn run_app(
     Ok(app.final_selection)
 }
 
-// Representação do nosso arquivo TOML
+// Representation of our TOML file
 #[derive(Deserialize)]
 struct Config {
     tries_path: Option<String>,
 }
 
-// Função auxiliar para substituir "~" pelo caminho real da home
+// Helper function to replace "~" with the actual home path
 fn expand_path(path_str: &str) -> PathBuf {
     if path_str.starts_with("~/") {
         if let Some(home) = dirs::home_dir() {
-            // Remove o "~/" (primeiros 2 chars) e junta com o home
+            // Remove "~/" (first 2 chars) and join with home
             return home.join(&path_str[2..]);
         }
     }
@@ -328,21 +316,21 @@ fn expand_path(path_str: &str) -> PathBuf {
 }
 
 fn get_configuration_path() -> PathBuf {
-    // 1. Tenta achar o diretório de config padrão (~/.config)
+    // 1. Try to find the default config directory (~/.config)
     let config_dir = dirs::config_dir().unwrap_or_else(|| {
-        // Fallback se não achar
+        // Fallback if not found
         dirs::home_dir().expect("Folder not found").join(".config")
     });
 
-    // 2. Monta o caminho: ~/.config/try-rs/config.toml
+    // 2. Build the path: ~/.config/try-rs/config.toml
     let config_file = config_dir.join("try-rs").join("config.toml");
 
-    // 3. Define o padrão antigo (fallback)
+    // 3. Define the old default (fallback)
     let default_path = dirs::home_dir()
         .expect("Folder not found")
         .join("src/tries");
 
-    // 4. Se o arquivo existe, tenta ler
+    // 4. If the file exists, try to read it
     if config_file.exists() {
         if let Ok(contents) = fs::read_to_string(&config_file) {
             if let Ok(config) = toml::from_str::<Config>(&contents) {
@@ -353,31 +341,31 @@ fn get_configuration_path() -> PathBuf {
         }
     }
 
-    // Se nada der certo ou não tiver config, retorna o padrão
+    // If nothing works or there is no config, return the default
     default_path
 }
 
 fn main() -> Result<()> {
     let tries_dir = get_configuration_path();
 
-    // Garante que o diretório existe (seja o do config ou o padrão)
+    // Ensure the directory exists (either from config or default)
     if !tries_dir.exists() {
         fs::create_dir_all(&tries_dir)?;
     }
 
-    // 2. Verifica argumentos da linha de comando
+    // 2. Check command line arguments
     let args: Vec<String> = std::env::args().collect();
 
-    // A variável 'selection' vai guardar o nome ou URL escolhido.
-    // Pode vir dos argumentos (CLI) ou da interface (TUI).
+    // The 'selection' variable will hold the chosen name or URL.
+    // It can come from arguments (CLI) or the interface (TUI).
     let selection_result: Option<String>;
 
     if args.len() > 1 {
-        // MODO CLI: O usuário passou um argumento (ex: try-rs https://...)
-        // Pulamos a interface gráfica totalmente.
+        // CLI MODE: The user passed an argument (e.g., try-rs https://...)
+        // We skip the graphical interface entirely.
         selection_result = Some(args[1].clone());
     } else {
-        // MODO TUI: Nenhum argumento, abre a interface visual.
+        // TUI MODE: No arguments, open the visual interface.
 
         enable_raw_mode()?;
         let mut stderr = io::stderr();
@@ -386,24 +374,24 @@ fn main() -> Result<()> {
         let mut terminal = Terminal::new(backend)?;
 
         let app = App::new(tries_dir.clone());
-        // Roda o app e captura o resultado
+        // Run the app and capture the result
         selection_result = run_app(&mut terminal, app)?;
 
-        // Restaura o terminal
+        // Restore the terminal
         disable_raw_mode()?;
         execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
         terminal.show_cursor()?;
     }
 
-    // 3. Processa o resultado (Comum para os dois modos)
+    // 3. Process the result (Common for both modes)
     if let Some(selection) = selection_result {
         let target_path = tries_dir.join(&selection);
 
-        // CASO 1: A pasta já existe? Entra nela.
+        // CASE 1: Does the folder already exist? Enter it.
         if target_path.exists() {
             println!("cd '{}'", target_path.to_string_lossy());
         } else {
-            // CASO 2: É um URL Git? Clona!
+            // CASE 2: Is it a Git URL? Clone it!
             if is_git_url(&selection) {
                 let repo_name = extract_repo_name(&selection);
 
@@ -431,7 +419,7 @@ fn main() -> Result<()> {
                     }
                 }
             } else {
-                // CASO 3: Cria pasta vazia
+                // CASE 3: Create an empty folder
                 let now = Local::now();
                 let date_prefix = now.format("%Y-%m-%d").to_string();
 
@@ -451,7 +439,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-// Verifica se a string parece um link Git
+// Checks if the string looks like a Git URL
 fn is_git_url(s: &str) -> bool {
     s.starts_with("http://")
         || s.starts_with("https://")
@@ -459,17 +447,17 @@ fn is_git_url(s: &str) -> bool {
         || s.starts_with("ssh://")
 }
 
-// Extrai um nome limpo do repositório (ex: "github.com/tobi/try.git" -> "try")
+// Extracts a clean repository name (e.g., "github.com/tobi/try.git" -> "try")
 fn extract_repo_name(url: &str) -> String {
-    // Remove o sufixo .git se existir
+    // Remove the .git suffix if it exists
     let clean_url = url.trim_end_matches(".git");
 
-    // Pega a última parte após a barra '/' ou dois pontos ':' (comum em ssh)
+    // Get the last part after the '/' or ':' (common in ssh)
     if let Some(last_part) = clean_url.rsplit(|c| c == '/' || c == ':').next() {
         if !last_part.is_empty() {
             return last_part.to_string();
         }
     }
-    // Nome genérico caso falhe a deteção
-    "repo-clonado".to_string()
+    // Generic name if detection fails
+    "cloned-repo".to_string()
 }
