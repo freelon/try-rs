@@ -10,6 +10,7 @@ use fuzzy_matcher::FuzzyMatcher;
 use ratatui::{prelude::*, widgets::*};
 use serde::Deserialize;
 use std::process::Stdio;
+use std::str::FromStr;
 use std::{fs, io, path::PathBuf, time::SystemTime};
 
 #[derive(Clone, Copy, PartialEq)]
@@ -26,6 +27,37 @@ struct TryEntry {
     score: i64,
 }
 
+#[derive(Clone)]
+struct Theme {
+    title_try: Color,
+    title_rs: Color,
+    search_box: Color,
+    list_date: Color,
+    list_highlight_bg: Color,
+    list_highlight_fg: Color,
+    help_text: Color,
+    status_message: Color,
+    popup_bg: Color,
+    popup_text: Color,
+}
+
+impl Default for Theme {
+    fn default() -> Self {
+        Self {
+            title_try: Color::Cyan,
+            title_rs: Color::Red,
+            search_box: Color::Yellow,
+            list_date: Color::DarkGray,
+            list_highlight_bg: Color::DarkGray,
+            list_highlight_fg: Color::White,
+            help_text: Color::DarkGray,
+            status_message: Color::Red,
+            popup_bg: Color::DarkGray,
+            popup_text: Color::Red,
+        }
+    }
+}
+
 // Our TUI state
 struct App {
     query: String,                   // What the user typed
@@ -36,12 +68,14 @@ struct App {
     final_selection: Option<String>, // The final result (for the shell)
     mode: AppMode,
     status_message: Option<String>,  // Feedback message for the user
+    base_path: PathBuf,              // Base directory for tries
+    theme: Theme,                    // Application colors
 }
 
 impl App {
-    fn new(path: PathBuf) -> Self {
+    fn new(path: PathBuf, theme: Theme) -> Self {
         let mut entries = Vec::new();
-        if let Ok(read_dir) = fs::read_dir(path) {
+        if let Ok(read_dir) = fs::read_dir(&path) {
             for entry in read_dir.flatten() {
                 if let Ok(metadata) = entry.metadata() {
                     if metadata.is_dir() {
@@ -66,6 +100,8 @@ impl App {
             final_selection: None,
             mode: AppMode::Normal,
             status_message: None,
+            base_path:  path,
+            theme,
         }
     }
 
@@ -95,13 +131,13 @@ impl App {
     }
 
     // Function to delete the selected item
-    fn delete_selected(&mut self, base_path: &std::path::Path) {
+    fn delete_selected(&mut self) {
     if let Some(entry_name) = self
         .filtered_entries
         .get(self.selected_index)
         .map(|e| e.name.clone())
     {
-        let path_to_remove = base_path.join(&entry_name);
+        let path_to_remove = self.base_path.join(&entry_name);
 
         match fs::remove_dir_all(&path_to_remove) {
             Ok(_) => {
@@ -118,7 +154,7 @@ impl App {
 }
 }
 
-fn draw_popup(f: &mut Frame, title: &str, message: &str) {
+fn draw_popup(f: &mut Frame, title: &str, message: &str, theme: &Theme) {
     let area = f.area();
 
     // 1. Define an area in the center (60% width, 20% height)
@@ -147,11 +183,11 @@ fn draw_popup(f: &mut Frame, title: &str, message: &str) {
     let block = Block::default()
         .title(title)
         .borders(Borders::ALL)
-        .style(Style::default().bg(Color::DarkGray));
+        .style(Style::default().bg(theme.popup_bg));
 
     let paragraph = Paragraph::new(message)
         .block(block)
-        .style(Style::default().fg(Color::Red).add_modifier(Modifier::BOLD))
+        .style(Style::default().fg(theme.popup_text).add_modifier(Modifier::BOLD))
         .alignment(Alignment::Center);
 
     f.render_widget(paragraph, popup_area);
@@ -161,8 +197,6 @@ fn run_app(
     terminal: &mut Terminal<CrosstermBackend<io::Stderr>>,
     mut app: App,
 ) -> Result<Option<String>> {
-
-    let tries_dir = get_configuration_path();
 
     while !app.should_quit {
         terminal.draw(|f| {
@@ -177,13 +211,15 @@ fn run_app(
                 .split(f.area());
 
             let title = Paragraph::new(Line::from(vec![
-                Span::styled("TRY-RS", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+                Span::styled("try", Style::default().fg(app.theme.title_try).add_modifier(Modifier::BOLD)),
+                Span::styled("-", Style::default().fg(Color::DarkGray)),
+                Span::styled("rs", Style::default().fg(app.theme.title_rs).add_modifier(Modifier::BOLD)),
             ]))
             .alignment(Alignment::Center);
             f.render_widget(title, chunks[0]);
 
             let search_text = Paragraph::new(app.query.clone())
-                .style(Style::default().fg(Color::Yellow))
+                .style(Style::default().fg(app.theme.search_box))
                 .block(Block::default().borders(Borders::ALL).title(" Search/New "));
             f.render_widget(search_text, chunks[1]);
 
@@ -197,7 +233,7 @@ fn run_app(
                         Span::raw(format!("📁{:<30}", entry.name)),
                         Span::styled(
                             format!("({})", date_str),
-                            Style::default().fg(Color::DarkGray),
+                            Style::default().fg(app.theme.list_date),
                         ),
                     ]);
                     ListItem::new(content)
@@ -208,8 +244,8 @@ fn run_app(
                 .block(Block::default().borders(Borders::ALL).title(" Folders "))
                 .highlight_style(
                     Style::default()
-                        .bg(Color::DarkGray)
-                        .fg(Color::White)
+                        .bg(app.theme.list_highlight_bg)
+                        .fg(app.theme.list_highlight_fg)
                         .add_modifier(Modifier::BOLD),
                 )
                 .highlight_symbol("→ ");
@@ -222,7 +258,7 @@ fn run_app(
             // If there is a status message, show it instead of help, or alongside it.
             let help_text = if let Some(msg) = &app.status_message {
                  Line::from(vec![
-                    Span::styled(msg, Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+                    Span::styled(msg, Style::default().fg(app.theme.status_message).add_modifier(Modifier::BOLD)),
                 ])
             } else {
                 Line::from(vec![
@@ -238,7 +274,7 @@ fn run_app(
             };
 
             let help_message = Paragraph::new(help_text)
-                .style(Style::default().fg(Color::DarkGray)) 
+                .style(Style::default().fg(app.theme.help_text)) 
                 .alignment(Alignment::Center);
 
             f.render_widget(help_message, chunks[3]);
@@ -247,7 +283,7 @@ fn run_app(
             if app.mode == AppMode::DeleteConfirm {
                 if let Some(selected) = app.filtered_entries.get(app.selected_index) {
                     let msg = format!("Delete '{}'? (y/n)", selected.name);
-                    draw_popup(f, " WARNING ", &msg);
+                    draw_popup(f, " WARNING ", &msg, &app.theme);
                 }
             }
         })?;
@@ -300,7 +336,7 @@ fn run_app(
 
                     AppMode::DeleteConfirm => match key.code {
                         KeyCode::Char('y') | KeyCode::Char('Y') => {
-                            app.delete_selected(&tries_dir);
+                            app.delete_selected();
                         }
                         KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
                             app.mode = AppMode::Normal;
@@ -317,8 +353,23 @@ fn run_app(
 
 // Representation of our TOML file
 #[derive(Deserialize)]
+struct ThemeConfig {
+    title_try: Option<String>,
+    title_rs: Option<String>,
+    search_box: Option<String>,
+    list_date: Option<String>,
+    list_highlight_bg: Option<String>,
+    list_highlight_fg: Option<String>,
+    help_text: Option<String>,
+    status_message: Option<String>,
+    popup_bg: Option<String>,
+    popup_text: Option<String>,
+}
+
+#[derive(Deserialize)]
 struct Config {
     tries_path: Option<String>,
+    colors: Option<ThemeConfig>,
 }
 
 // Helper function to replace "~" with the actual home path
@@ -332,7 +383,7 @@ fn expand_path(path_str: &str) -> PathBuf {
     PathBuf::from(path_str)
 }
 
-fn get_configuration_path() -> PathBuf {
+fn load_configuration() -> (PathBuf, Theme) {
     // 1. Try to find the default config directory (~/.config)
     let config_dir = dirs::config_dir().unwrap_or_else(|| {
         // Fallback if not found
@@ -348,12 +399,35 @@ fn get_configuration_path() -> PathBuf {
         .expect("Folder not found")
         .join("work/tries");
 
+    let mut theme = Theme::default();
+    let mut final_path = default_path;
+
     // 4. If the file exists, try to read it
     if config_file.exists() {
         if let Ok(contents) = fs::read_to_string(&config_file) {
             if let Ok(config) = toml::from_str::<Config>(&contents) {
                 if let Some(path_str) = config.tries_path {
-                    return expand_path(&path_str);
+                    final_path = expand_path(&path_str);
+                }
+                if let Some(colors) = config.colors {
+                    // Helper to parse color string to Color enum
+                    let parse = |opt: Option<String>, def: Color| -> Color {
+                        opt.and_then(|s| Color::from_str(&s).ok()).unwrap_or(def)
+                    };
+                    
+                    let def = Theme::default();
+                    theme = Theme {
+                        title_try: parse(colors.title_try, def.title_try),
+                        title_rs: parse(colors.title_rs, def.title_rs),
+                        search_box: parse(colors.search_box, def.search_box),
+                        list_date: parse(colors.list_date, def.list_date),
+                        list_highlight_bg: parse(colors.list_highlight_bg, def.list_highlight_bg),
+                        list_highlight_fg: parse(colors.list_highlight_fg, def.list_highlight_fg),
+                        help_text: parse(colors.help_text, def.help_text),
+                        status_message: parse(colors.status_message, def.status_message),
+                        popup_bg: parse(colors.popup_bg, def.popup_bg),
+                        popup_text: parse(colors.popup_text, def.popup_text),
+                    };
                 }
             }
         }
@@ -366,7 +440,7 @@ fn get_configuration_path() -> PathBuf {
     }
 
     // If nothing works or there is no config, return the default
-    default_path
+    (final_path, theme)
 }
 
 fn setup_fish() -> Result<()> {
@@ -464,7 +538,7 @@ fn setup_bash() -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    let tries_dir = get_configuration_path();
+    let (tries_dir, theme) = load_configuration();
 
     // Ensure the directory exists (either from config or default)
     if !tries_dir.exists() {
@@ -500,7 +574,7 @@ fn main() -> Result<()> {
         let backend = CrosstermBackend::new(stderr);
         let mut terminal = Terminal::new(backend)?;
 
-        let app = App::new(tries_dir.clone());
+        let app = App::new(tries_dir.clone(), theme);
         // Run the app and capture the result
         selection_result = run_app(&mut terminal, app)?;
 
