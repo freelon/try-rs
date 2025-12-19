@@ -169,7 +169,7 @@ fn run_app(
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
-                    Constraint::Length(2),
+                    Constraint::Length(1),
                     Constraint::Length(3),
                     Constraint::Min(1),
                     Constraint::Length(1),
@@ -177,9 +177,7 @@ fn run_app(
                 .split(f.area());
 
             let title = Paragraph::new(Line::from(vec![
-                Span::styled("TRY", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-                Span::styled("-", Style::default().fg(Color::DarkGray)),
-                Span::styled("RS", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+                Span::styled("TRY-RS", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
             ]))
             .alignment(Alignment::Center);
             f.render_widget(title, chunks[0]);
