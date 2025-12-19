@@ -431,6 +431,38 @@ fn setup_zsh() -> Result<()> {
     Ok(())
 }
 
+fn setup_bash() -> Result<()> {
+    let config_dir = dirs::config_dir().unwrap_or_else(|| {
+        dirs::home_dir().expect("Could not find home directory").join(".config")
+    });
+
+    let app_config_dir = config_dir.join("try-rs");
+
+    if !app_config_dir.exists() {
+        fs::create_dir_all(&app_config_dir)?;
+    }
+
+    let file_path = app_config_dir.join("try-rs.bash");
+    let content = r#"try-rs() {
+    # Captures the output of the binary (stdout) which is the "cd" command
+    # The TUI is rendered on stderr, so it doesn't interfere.
+    local output
+    output=$(command try-rs "$@")
+
+    if [ -n "$output" ]; then
+        eval "$output"
+    fi
+}
+"#;
+
+    fs::write(&file_path, content)?;
+    println!("Bash function file created at: {}", file_path.display());
+    println!("You need to source this file in your ~/.bashrc:");
+    println!("source {}", file_path.display());
+
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let tries_dir = get_configuration_path();
 
@@ -446,6 +478,7 @@ fn main() -> Result<()> {
         match args[2].as_str() {
             "fish" => return setup_fish(),
             "zsh" => return setup_zsh(),
+            "bash" => return setup_bash(),
             _ => {}
         }
     }
