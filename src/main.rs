@@ -25,6 +25,7 @@ struct TryEntry {
     name: String,
     modified: SystemTime,
     score: i64,
+    is_git: bool,
 }
 
 #[derive(Clone)]
@@ -80,10 +81,13 @@ impl App {
             for entry in read_dir.flatten() {
                 if let Ok(metadata) = entry.metadata() {
                     if metadata.is_dir() {
+                        let name = entry.file_name().to_string_lossy().to_string();
+                        let is_git = entry.path().join(".git").exists();
                         entries.push(TryEntry {
-                            name: entry.file_name().to_string_lossy().to_string(),
+                            name,
                             modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
                             score: 0,
+                            is_git,
                         });
                     }
                 }
@@ -212,9 +216,9 @@ fn run_app(
                 .split(f.area());
 
             let title = Paragraph::new(Line::from(vec![
-                Span::styled("try", Style::default().fg(app.theme.title_try).add_modifier(Modifier::BOLD)),
+                Span::styled("🦀 try", Style::default().fg(app.theme.title_try).add_modifier(Modifier::BOLD)),
                 Span::styled("-", Style::default().fg(Color::DarkGray)),
-                Span::styled("rs", Style::default().fg(app.theme.title_rs).add_modifier(Modifier::BOLD)),
+                Span::styled("rs 🦀", Style::default().fg(app.theme.title_rs).add_modifier(Modifier::BOLD)),
             ]))
             .alignment(Alignment::Center);
             f.render_widget(title, chunks[0]);
@@ -235,11 +239,13 @@ fn run_app(
                     let width = chunks[2].width.saturating_sub(2) as usize;
 
                     let date_text = format!("{}", date_str);
-                    let date_width = date_text.chars().count()+3;
+                    let date_width = date_text.chars().count();
+                    let git_icon = if entry.is_git { " " } else { "" };
+                    let git_width = if entry.is_git { 2 } else { 0 };
                     let icon_width = 2; // "📁" takes 2 columns
 
                     // Calculate space for name
-                    let reserved = date_width + icon_width + 1; // +1 for min gap
+                    let reserved = date_width + git_width + icon_width + 1; // +1 for min gap
                     let available_for_name = width.saturating_sub(reserved);
                     let name_len = entry.name.chars().count();
 
@@ -248,12 +254,16 @@ fn run_app(
                         let truncated: String = entry.name.chars().take(safe_len).collect();
                         (format!("{}...", truncated), 1)
                     } else {
-                        (entry.name.clone(), width.saturating_sub(icon_width + name_len + date_width))
+                        (entry.name.clone(), width.saturating_sub(icon_width + name_len + date_width + git_width))
                     };
 
                     let content = Line::from(vec![
                         Span::raw(format!("📁{}", display_name)),
                         Span::raw(" ".repeat(padding)),
+                        Span::styled(
+                            git_icon,
+                            Style::default().fg(Color::Rgb(240, 80, 50)),
+                        ),
                         Span::styled(
                             date_text,
                             Style::default().fg(app.theme.list_date),
@@ -561,7 +571,7 @@ fn setup_bash() -> Result<()> {
 }
 
 fn print_help() {
-    eprintln!("try-rs {}", env!("CARGO_PKG_VERSION"));
+    eprintln!("🦀 try-rs {}", env!("CARGO_PKG_VERSION"));
     eprintln!("A blazing fast, Rust-based workspace manager for your temporary experiments.");
     eprintln!();
     eprintln!("Usage:");
