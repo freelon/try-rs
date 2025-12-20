@@ -15,26 +15,20 @@ This project is a Rust port and re-imagination of the excellent [try](https://gi
 
 While the original is a lightweight Ruby script, **try-rs** aims to bring the same philosophy, "Your experiments deserve a home", but with the performance, type safety, and modern TUI capabilities (using [Ratatui](https://github.com/ratatui/ratatui)) of the Rust ecosystem.
 
-## 🤔 Why try-rs?
-
-| Feature         | Description                                                                                             |
-|-----------------|---------------------------------------------------------------------------------------------------------|
-| **🏎️ Blazing Fast** | Built in Rust, it's compiled to a native binary. No more waiting for a script interpreter to start up. |
-| **🖼️ Rich TUI**     | A modern Ratatui interface makes browsing and managing projects a breeze.                               |
-| **✅ Type Safe**    | Say goodbye to runtime errors. Rust's strict compiler catches them before they become a problem.        |
-| **Git-Aware**   | Clones repos with a single command, automatically naming them.                                          |
-
 ## ✨ Features
 
-* **Fuzzy Search:** Instantly find old experiments using a smart fuzzy matching algorithm.
-* **Auto-Dating:** Creates directories like `2025-12-17-rust-test` automatically.
-* **Git Integration:** Paste a GitHub/GitLab URL, and it will auto-clone it into a dated folder.
-    * `try-rs https://github.com/ratatui/ratatui` → clones to `.../2025-12-17-ratatui`
-* **Visual Indicators:** Automatically detects and marks Git repositories with an icon () in the list.
-* **Theming:** Fully customizable UI colors via config file (comes with **Catppuccin Mocha** as default).
-* **Terminal UI:** A beautiful TUI built with Ratatui to browse your projects.
-* **Safe Deletion:** Delete old experiments directly from the UI (`Ctrl+D`) with a confirmation popup.
-* **Configurable:** Supports `XDG Base Directory` specification (`~/.config/try-rs/config.toml`).
+| Feature | Description |
+| :--- | :--- |
+| **🏎️ Blazing Fast** | Built in Rust, compiled to native binary. No interpreter lag. |
+| **🖼️ Rich TUI** | Beautiful terminal interface built with Ratatui. |
+| **🔍 Fuzzy Search** | Instantly find old experiments with smart matching. |
+| **📅 Auto-Dating** | Creates directories like `2025-12-17-rust-test` automatically. |
+| **🐙 Git Integration** | Auto-clones URLs (`try-rs <url>`) and marks repos with (). |
+| **👀 Content Preview** | Inspect files inside a folder before entering it. |
+| **📝 Editor Integration** | Open experiments directly in your editor (`Ctrl+E`). |
+| **🎨 Theming** | Customizable UI colors (Catppuccin Mocha default). |
+| **🗑️ Safe Deletion** | Delete old experiments via UI with confirmation (`Ctrl+D`). |
+| **⚙️ Configurable** | Supports XDG Base Directory (`~/.config/try-rs/config.toml`). |
 
 ## 📦 Installation
 
@@ -99,6 +93,7 @@ By default, experiments are stored in `~/work/tries`. You can customize the path
 ```toml
 # ~/.config/try-rs/config.toml
 tries_path = "~/Development/playground"
+editor = "code" # Optional: code, nvim, hx, etc.
 
 [colors]
 title_try = "Magenta"
@@ -127,6 +122,7 @@ Simply type try-rs (or your alias) in your terminal.
 | `↑` / `↓`| Navigate the list                                    |
 | `Enter`  | Select directory (or create new if text doesn't match) |
 | `Ctrl+D` | Delete the selected directory (triggers popup)       |
+| `Ctrl+E` | Open in editor (configured in config.toml)           |
 | `Esc`    | Cancel / Close Popup                                 |
 
 ### CLI Commands
