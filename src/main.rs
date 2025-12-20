@@ -72,10 +72,12 @@ struct App {
     status_message: Option<String>,  // Feedback message for the user
     base_path: PathBuf,              // Base directory for tries
     theme: Theme,                    // Application colors
+    editor_cmd: Option<String>,      // Editor command (e.g., "code", "nvim")
+    wants_editor: bool,              // Flag to indicate if we should open the editor
 }
 
 impl App {
-    fn new(path: PathBuf, theme: Theme) -> Self {
+    fn new(path: PathBuf, theme: Theme, editor_cmd: Option<String>) -> Self {
         let mut entries = Vec::new();
         if let Ok(read_dir) = fs::read_dir(&path) {
             for entry in read_dir.flatten() {
@@ -107,6 +109,8 @@ impl App {
             status_message: None,
             base_path:  path,
             theme,
+            editor_cmd,
+            wants_editor: false,
         }
     }
 
@@ -201,7 +205,7 @@ fn draw_popup(f: &mut Frame, title: &str, message: &str, theme: &Theme) {
 fn run_app(
     terminal: &mut Terminal<CrosstermBackend<io::Stderr>>,
     mut app: App,
-) -> Result<Option<String>> {
+) -> Result<(Option<String>, bool)> {
 
     while !app.should_quit {
         terminal.draw(|f| {
@@ -340,6 +344,8 @@ fn run_app(
                     Span::raw(": Select  "),
                     Span::styled("Ctrl-D", Style::default().add_modifier(Modifier::BOLD)),
                     Span::raw(": Delete  "),
+                    Span::styled("Ctrl-E", Style::default().add_modifier(Modifier::BOLD)),
+                    Span::raw(": Edit    "),
                     Span::styled("Esc", Style::default().add_modifier(Modifier::BOLD)),
                     Span::raw(": Cancel"),
                 ])
@@ -372,6 +378,21 @@ fn run_app(
                                 // Only enter delete mode if something is selected
                                 if !app.filtered_entries.is_empty() {
                                     app.mode = AppMode::DeleteConfirm;
+                                }
+                            } else if c == 'e' && key.modifiers.contains(event::KeyModifiers::CONTROL) {
+                                // Ctrl+E to open editor
+                                if app.editor_cmd.is_some() {
+                                    if !app.filtered_entries.is_empty() {
+                                        app.final_selection = Some(app.filtered_entries[app.selected_index].name.clone());
+                                        app.wants_editor = true;
+                                        app.should_quit = true;
+                                    } else if !app.query.is_empty() {
+                                        app.final_selection = Some(app.query.clone());
+                                        app.wants_editor = true;
+                                        app.should_quit = true;
+                                    }
+                                } else {
+                                    app.status_message = Some("No editor configured in config.toml".to_string());
                                 }
                             } else {
                                 app.query.push(c);
@@ -420,7 +441,7 @@ fn run_app(
         }
     }
 
-    Ok(app.final_selection)
+    Ok((app.final_selection, app.wants_editor))
 }
 
 // Representation of our TOML file
@@ -436,12 +457,14 @@ struct ThemeConfig {
     status_message: Option<String>,
     popup_bg: Option<String>,
     popup_text: Option<String>,
+    
 }
 
 #[derive(Deserialize)]
 struct Config {
     tries_path: Option<String>,
     colors: Option<ThemeConfig>,
+    editor: Option<String>,
 }
 
 // Helper function to replace "~" with the actual home path
@@ -455,7 +478,7 @@ fn expand_path(path_str: &str) -> PathBuf {
     PathBuf::from(path_str)
 }
 
-fn load_configuration() -> (PathBuf, Theme) {
+fn load_configuration() -> (PathBuf, Theme, Option<String>) {
     // 1. Try to find the default config directory (~/.config)
     let config_dir = dirs::config_dir().unwrap_or_else(|| {
         // Fallback if not found
@@ -473,6 +496,7 @@ fn load_configuration() -> (PathBuf, Theme) {
 
     let mut theme = Theme::default();
     let mut final_path = default_path;
+    let mut editor_cmd = std::env::var("VISUAL").ok().or_else(|| std::env::var("EDITOR").ok());
 
     // 4. If the file exists, try to read it
     if config_file.exists() {
@@ -480,6 +504,9 @@ fn load_configuration() -> (PathBuf, Theme) {
             if let Ok(config) = toml::from_str::<Config>(&contents) {
                 if let Some(path_str) = config.tries_path {
                     final_path = expand_path(&path_str);
+                }
+                if let Some(editor) = config.editor {
+                    editor_cmd = Some(editor);
                 }
                 if let Some(colors) = config.colors {
                     // Helper to parse color string to Color enum
@@ -512,7 +539,7 @@ fn load_configuration() -> (PathBuf, Theme) {
     }
 
     // If nothing works or there is no config, return the default
-    (final_path, theme)
+    (final_path, theme, editor_cmd)
 }
 
 fn setup_fish() -> Result<()> {
@@ -624,7 +651,7 @@ fn print_help() {
 }
 
 fn main() -> Result<()> {
-    let (tries_dir, theme) = load_configuration();
+    let (tries_dir, theme, editor_cmd) = load_configuration();
 
     // Ensure the directory exists (either from config or default)
     if !tries_dir.exists() {
@@ -656,6 +683,7 @@ fn main() -> Result<()> {
     // The 'selection' variable will hold the chosen name or URL.
     // It can come from arguments (CLI) or the interface (TUI).
     let selection_result: Option<String>;
+    let mut open_editor = false;
 
     if args.len() > 1 {
         // CLI MODE: The user passed an argument (e.g., try-rs https://...)
@@ -670,9 +698,9 @@ fn main() -> Result<()> {
         let backend = CrosstermBackend::new(stderr);
         let mut terminal = Terminal::new(backend)?;
 
-        let app = App::new(tries_dir.clone(), theme);
+        let app = App::new(tries_dir.clone(), theme, editor_cmd.clone());
         // Run the app and capture the result
-        selection_result = run_app(&mut terminal, app)?;
+        (selection_result, open_editor) = run_app(&mut terminal, app)?;
 
         // Restore the terminal
         disable_raw_mode()?;
@@ -686,7 +714,11 @@ fn main() -> Result<()> {
 
         // CASE 1: Does the folder already exist? Enter it.
         if target_path.exists() {
-            println!("cd '{}'", target_path.to_string_lossy());
+            if open_editor && editor_cmd.is_some() {
+                println!("{} '{}'", editor_cmd.unwrap(), target_path.to_string_lossy());
+            } else {
+                println!("cd '{}'", target_path.to_string_lossy());
+            }
         } else {
             // CASE 2: Is it a Git URL? Clone it!
             if is_git_url(&selection) {
@@ -709,7 +741,11 @@ fn main() -> Result<()> {
 
                 match status {
                     Ok(s) if s.success() => {
-                        println!("cd '{}'", new_path.to_string_lossy());
+                        if open_editor && editor_cmd.is_some() {
+                            println!("{} '{}'", editor_cmd.unwrap(), new_path.to_string_lossy());
+                        } else {
+                            println!("cd '{}'", new_path.to_string_lossy());
+                        }
                     }
                     _ => {
                         eprintln!("Error: Failed to clone the repository.");
@@ -728,7 +764,11 @@ fn main() -> Result<()> {
 
                 let new_path = tries_dir.join(&new_name);
                 fs::create_dir_all(&new_path)?;
-                println!("cd '{}'", new_path.to_string_lossy());
+                if open_editor && editor_cmd.is_some() {
+                    println!("{} '{}'", editor_cmd.unwrap(), new_path.to_string_lossy());
+                } else {
+                    println!("cd '{}'", new_path.to_string_lossy());
+                }
             }
         }
     }
