@@ -34,9 +34,12 @@ jobs:
         run: |
           cd target/${{ matrix.target }}/release
           ls -lh
-          tar -czvf $BIN_NAME-${{ matrix.target }}.tar.gz $BIN_NAME
+          tar -czvf $BIN_NAME-linux-x86_64.tar.gz $BIN_NAME
+          sha256sum $BIN_NAME-linux-x86_64.tar.gz > $BIN_NAME-linux-x86_64.tar.gz.sha256
 
       - name: Upload Release
         uses: softprops/action-gh-release@v2
         with:
-          files: target/${{ matrix.target }}/release/*.tar.gz
+          files: |
+            target/${{ matrix.target }}/release/*.tar.gz
+            target/${{ matrix.target }}/release/*.sha256

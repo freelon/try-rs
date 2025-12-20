@@ -2,15 +2,12 @@
 name = "try-rs"
 version = "0.1.6"
 edition = "2024"
-
 description = "Temporary workspace manager for fast experimentation in the terminal"
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/tassiovirginio/try-rs"
-
 keywords = ["cli", "workspace", "tui", "rust"]
 categories = ["command-line-utilities"]
-
 
 [dependencies]
 ratatui = "0.29"
