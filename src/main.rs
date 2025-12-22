@@ -46,16 +46,16 @@ impl Default for Theme {
     fn default() -> Self {
         Self {
             // Catppuccin Mocha Palette
-            title_try: Color::Rgb(137, 180, 250),       // Blue
-            title_rs: Color::Rgb(243, 139, 168),        // Red
-            search_box: Color::Rgb(250, 179, 135),      // Peach
-            list_date: Color::Rgb(166, 173, 200),       // Subtext0
-            list_highlight_bg: Color::Rgb(88, 91, 112), // Surface2
+            title_try: Color::Rgb(137, 180, 250),         // Blue
+            title_rs: Color::Rgb(243, 139, 168),          // Red
+            search_box: Color::Rgb(250, 179, 135),        // Peach
+            list_date: Color::Rgb(166, 173, 200),         // Subtext0
+            list_highlight_bg: Color::Rgb(88, 91, 112),   // Surface2
             list_highlight_fg: Color::Rgb(205, 214, 244), // Text
-            help_text: Color::Rgb(147, 153, 178),       // Overlay2
-            status_message: Color::Rgb(249, 226, 175),  // Yellow
-            popup_bg: Color::Rgb(30, 30, 46),           // Base
-            popup_text: Color::Rgb(243, 139, 168),      // Red
+            help_text: Color::Rgb(147, 153, 178),         // Overlay2
+            status_message: Color::Rgb(249, 226, 175),    // Yellow
+            popup_bg: Color::Rgb(30, 30, 46),             // Base
+            popup_text: Color::Rgb(243, 139, 168),        // Red
         }
     }
 }
@@ -69,11 +69,11 @@ struct App {
     should_quit: bool,               // Flag to exit the loop
     final_selection: Option<String>, // The final result (for the shell)
     mode: AppMode,
-    status_message: Option<String>,  // Feedback message for the user
-    base_path: PathBuf,              // Base directory for tries
-    theme: Theme,                    // Application colors
-    editor_cmd: Option<String>,      // Editor command (e.g., "code", "nvim")
-    wants_editor: bool,              // Flag to indicate if we should open the editor
+    status_message: Option<String>, // Feedback message for the user
+    base_path: PathBuf,             // Base directory for tries
+    theme: Theme,                   // Application colors
+    editor_cmd: Option<String>,     // Editor command (e.g., "code", "nvim")
+    wants_editor: bool,             // Flag to indicate if we should open the editor
 }
 
 impl App {
@@ -107,7 +107,7 @@ impl App {
             final_selection: None,
             mode: AppMode::Normal,
             status_message: None,
-            base_path:  path,
+            base_path: path,
             theme,
             editor_cmd,
             wants_editor: false,
@@ -141,26 +141,26 @@ impl App {
 
     // Function to delete the selected item
     fn delete_selected(&mut self) {
-    if let Some(entry_name) = self
-        .filtered_entries
-        .get(self.selected_index)
-        .map(|e| e.name.clone())
-    {
-        let path_to_remove = self.base_path.join(&entry_name);
+        if let Some(entry_name) = self
+            .filtered_entries
+            .get(self.selected_index)
+            .map(|e| e.name.clone())
+        {
+            let path_to_remove = self.base_path.join(&entry_name);
 
-        match fs::remove_dir_all(&path_to_remove) {
-            Ok(_) => {
-                self.all_entries.retain(|e| e.name != entry_name);
-                self.update_search();
-                self.status_message = Some(format!("Deleted: {}", path_to_remove.display()));
-            }
-            Err(e) => {
-                self.status_message = Some(format!("Error deleting: {}", e));
+            match fs::remove_dir_all(&path_to_remove) {
+                Ok(_) => {
+                    self.all_entries.retain(|e| e.name != entry_name);
+                    self.update_search();
+                    self.status_message = Some(format!("Deleted: {}", path_to_remove.display()));
+                }
+                Err(e) => {
+                    self.status_message = Some(format!("Error deleting: {}", e));
+                }
             }
         }
+        self.mode = AppMode::Normal;
     }
-    self.mode = AppMode::Normal;
-}
 }
 
 fn draw_popup(f: &mut Frame, title: &str, message: &str, theme: &Theme) {
@@ -196,7 +196,11 @@ fn draw_popup(f: &mut Frame, title: &str, message: &str, theme: &Theme) {
 
     let paragraph = Paragraph::new(message)
         .block(block)
-        .style(Style::default().fg(theme.popup_text).add_modifier(Modifier::BOLD))
+        .style(
+            Style::default()
+                .fg(theme.popup_text)
+                .add_modifier(Modifier::BOLD),
+        )
         .alignment(Alignment::Center);
 
     f.render_widget(paragraph, popup_area);
@@ -206,7 +210,6 @@ fn run_app(
     terminal: &mut Terminal<CrosstermBackend<io::Stderr>>,
     mut app: App,
 ) -> Result<(Option<String>, bool)> {
-
     while !app.should_quit {
         terminal.draw(|f| {
             let chunks = Layout::default()
@@ -225,11 +228,29 @@ fn run_app(
                 .split(chunks[2]);
 
             let title = Paragraph::new(Line::from(vec![
-                Span::styled("🦀 try", Style::default().fg(app.theme.title_try).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "🦀 try",
+                    Style::default()
+                        .fg(app.theme.title_try)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled("-", Style::default().fg(Color::DarkGray)),
-                Span::styled("rs", Style::default().fg(app.theme.title_rs).add_modifier(Modifier::BOLD)),
-                Span::styled(format!(" v{} ", env!("CARGO_PKG_VERSION")), Style::default().fg(Color::DarkGray)),
-                Span::styled("🦀", Style::default().fg(app.theme.title_rs).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "rs",
+                    Style::default()
+                        .fg(app.theme.title_rs)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    format!(" v{} ", env!("CARGO_PKG_VERSION")),
+                    Style::default().fg(Color::DarkGray),
+                ),
+                Span::styled(
+                    "🦀",
+                    Style::default()
+                        .fg(app.theme.title_rs)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ]))
             .alignment(Alignment::Center);
             f.render_widget(title, chunks[0]);
@@ -265,20 +286,17 @@ fn run_app(
                         let truncated: String = entry.name.chars().take(safe_len).collect();
                         (format!("{}...", truncated), 1)
                     } else {
-                        (entry.name.clone(), width.saturating_sub(icon_width + name_len + date_width + git_width))
+                        (
+                            entry.name.clone(),
+                            width.saturating_sub(icon_width + name_len + date_width + git_width),
+                        )
                     };
 
                     let content = Line::from(vec![
                         Span::raw(format!("📁{}", display_name)),
                         Span::raw(" ".repeat(padding)),
-                        Span::styled(
-                            git_icon,
-                            Style::default().fg(Color::Rgb(240, 80, 50)),
-                        ),
-                        Span::styled(
-                            date_text,
-                            Style::default().fg(app.theme.list_date),
-                        ),
+                        Span::styled(git_icon, Style::default().fg(Color::Rgb(240, 80, 50))),
+                        Span::styled(date_text, Style::default().fg(app.theme.list_date)),
                     ]);
                     ListItem::new(content)
                 })
@@ -319,7 +337,10 @@ fn run_app(
                 }
 
                 if preview_lines.is_empty() {
-                    preview_lines.push(Line::from(Span::styled(" (empty) ", Style::default().fg(Color::DarkGray))));
+                    preview_lines.push(Line::from(Span::styled(
+                        " (empty) ",
+                        Style::default().fg(Color::DarkGray),
+                    )));
                 }
 
                 let preview = Paragraph::new(preview_lines)
@@ -333,9 +354,12 @@ fn run_app(
             // --- Footer Widget (Help) ---
             // If there is a status message, show it instead of help, or alongside it.
             let help_text = if let Some(msg) = &app.status_message {
-                 Line::from(vec![
-                    Span::styled(msg, Style::default().fg(app.theme.status_message).add_modifier(Modifier::BOLD)),
-                ])
+                Line::from(vec![Span::styled(
+                    msg,
+                    Style::default()
+                        .fg(app.theme.status_message)
+                        .add_modifier(Modifier::BOLD),
+                )])
             } else {
                 Line::from(vec![
                     Span::styled("↑↓", Style::default().add_modifier(Modifier::BOLD)),
@@ -352,7 +376,7 @@ fn run_app(
             };
 
             let help_message = Paragraph::new(help_text)
-                .style(Style::default().fg(app.theme.help_text)) 
+                .style(Style::default().fg(app.theme.help_text))
                 .alignment(Alignment::Center);
 
             f.render_widget(help_message, chunks[3]);
@@ -379,11 +403,15 @@ fn run_app(
                                 if !app.filtered_entries.is_empty() {
                                     app.mode = AppMode::DeleteConfirm;
                                 }
-                            } else if c == 'e' && key.modifiers.contains(event::KeyModifiers::CONTROL) {
+                            } else if c == 'e'
+                                && key.modifiers.contains(event::KeyModifiers::CONTROL)
+                            {
                                 // Ctrl+E to open editor
                                 if app.editor_cmd.is_some() {
                                     if !app.filtered_entries.is_empty() {
-                                        app.final_selection = Some(app.filtered_entries[app.selected_index].name.clone());
+                                        app.final_selection = Some(
+                                            app.filtered_entries[app.selected_index].name.clone(),
+                                        );
                                         app.wants_editor = true;
                                         app.should_quit = true;
                                     } else if !app.query.is_empty() {
@@ -392,7 +420,8 @@ fn run_app(
                                         app.should_quit = true;
                                     }
                                 } else {
-                                    app.status_message = Some("No editor configured in config.toml".to_string());
+                                    app.status_message =
+                                        Some("No editor configured in config.toml".to_string());
                                 }
                             } else {
                                 app.query.push(c);
@@ -434,7 +463,7 @@ fn run_app(
                         KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
                             app.mode = AppMode::Normal;
                         }
-                        _ => {} 
+                        _ => {}
                     },
                 }
             }
@@ -457,7 +486,6 @@ struct ThemeConfig {
     status_message: Option<String>,
     popup_bg: Option<String>,
     popup_text: Option<String>,
-    
 }
 
 #[derive(Deserialize)]
@@ -496,7 +524,9 @@ fn load_configuration() -> (PathBuf, Theme, Option<String>) {
 
     let mut theme = Theme::default();
     let mut final_path = default_path;
-    let mut editor_cmd = std::env::var("VISUAL").ok().or_else(|| std::env::var("EDITOR").ok());
+    let mut editor_cmd = std::env::var("VISUAL")
+        .ok()
+        .or_else(|| std::env::var("EDITOR").ok());
 
     // 4. If the file exists, try to read it
     if config_file.exists() {
@@ -513,7 +543,7 @@ fn load_configuration() -> (PathBuf, Theme, Option<String>) {
                     let parse = |opt: Option<String>, def: Color| -> Color {
                         opt.and_then(|s| Color::from_str(&s).ok()).unwrap_or(def)
                     };
-                    
+
                     let def = Theme::default();
                     theme = Theme {
                         title_try: parse(colors.title_try, def.title_try),
@@ -544,7 +574,9 @@ fn load_configuration() -> (PathBuf, Theme, Option<String>) {
 
 fn setup_fish() -> Result<()> {
     let config_dir = dirs::config_dir().unwrap_or_else(|| {
-        dirs::home_dir().expect("Could not find home directory").join(".config")
+        dirs::home_dir()
+            .expect("Could not find home directory")
+            .join(".config")
     });
 
     let fish_functions_dir = config_dir.join("fish").join("functions");
@@ -567,14 +599,19 @@ end
 
     fs::write(&file_path, content)?;
     eprintln!("Fish function created at: {}", file_path.display());
-    eprintln!("You may need to restart your shell or run 'source {}' to apply changes.", file_path.display());
+    eprintln!(
+        "You may need to restart your shell or run 'source {}' to apply changes.",
+        file_path.display()
+    );
 
     Ok(())
 }
 
 fn setup_zsh() -> Result<()> {
     let config_dir = dirs::config_dir().unwrap_or_else(|| {
-        dirs::home_dir().expect("Could not find home directory").join(".config")
+        dirs::home_dir()
+            .expect("Could not find home directory")
+            .join(".config")
     });
 
     let app_config_dir = config_dir.join("try-rs");
@@ -606,7 +643,9 @@ fn setup_zsh() -> Result<()> {
 
 fn setup_bash() -> Result<()> {
     let config_dir = dirs::config_dir().unwrap_or_else(|| {
-        dirs::home_dir().expect("Could not find home directory").join(".config")
+        dirs::home_dir()
+            .expect("Could not find home directory")
+            .join(".config")
     });
 
     let app_config_dir = config_dir.join("try-rs");
@@ -715,7 +754,11 @@ fn main() -> Result<()> {
         // CASE 1: Does the folder already exist? Enter it.
         if target_path.exists() {
             if open_editor && editor_cmd.is_some() {
-                println!("{} '{}'", editor_cmd.unwrap(), target_path.to_string_lossy());
+                println!(
+                    "{} '{}'",
+                    editor_cmd.unwrap(),
+                    target_path.to_string_lossy()
+                );
             } else {
                 println!("cd '{}'", target_path.to_string_lossy());
             }
