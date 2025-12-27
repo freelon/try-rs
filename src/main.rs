@@ -527,7 +527,9 @@ fn load_configuration() -> (PathBuf, Theme, Option<String>, bool) {
 
     // 2. Build the path: ~/.config/try-rs/config.toml
     let app_config_dir = config_dir.join("try-rs");
-    let config_file = app_config_dir.join("config.toml");
+    let config_file = app_config_dir
+        .join(std::env::var_os("TRY_CONFIG").unwrap_or_else(|| "config".into()))
+        .with_extension("toml");
 
     // 3. Define the old default (fallback)
     let default_path = dirs::home_dir()
@@ -535,7 +537,9 @@ fn load_configuration() -> (PathBuf, Theme, Option<String>, bool) {
         .join("work/tries");
 
     let mut theme = Theme::default();
-    let mut final_path = default_path;
+    let try_path = std::env::var_os("TRY_PATH");
+    let try_path_specified = try_path.is_some();
+    let mut final_path = try_path.map(PathBuf::from).unwrap_or(default_path);
     let mut editor_cmd = std::env::var("VISUAL")
         .ok()
         .or_else(|| std::env::var("EDITOR").ok());
@@ -545,7 +549,9 @@ fn load_configuration() -> (PathBuf, Theme, Option<String>, bool) {
     if config_file.exists() {
         if let Ok(contents) = fs::read_to_string(&config_file) {
             if let Ok(config) = toml::from_str::<Config>(&contents) {
-                if let Some(path_str) = config.tries_path {
+                if let Some(path_str) = config.tries_path
+                    && !try_path_specified
+                {
                     final_path = expand_path(&path_str);
                 }
                 if let Some(editor) = config.editor {
@@ -576,7 +582,7 @@ fn load_configuration() -> (PathBuf, Theme, Option<String>, bool) {
     } else {
         // Create default config if it doesn't exist
         if fs::create_dir_all(&app_config_dir).is_ok() {
-            let default_content = "tries_path = \"~/work/tries\"";
+            let default_content = format!("tries_path = {final_path:?}");
             let _ = fs::write(&config_file, default_content);
             is_first_run = true;
         }
