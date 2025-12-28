@@ -24,8 +24,8 @@ While the original is a lightweight Ruby script, **try-rs** aims to bring the sa
 | **🏎️ Blazing Fast** | Built in Rust, compiled to native binary. No interpreter lag. |
 | **🖼️ Rich TUI** | Beautiful terminal interface built with Ratatui. |
 | **🔍 Fuzzy Search** | Instantly find old experiments with smart matching. |
-| **📅 Auto-Dating** | Creates directories like `2025-12-17-rust-test` automatically. |
-| **🐙 Git Integration** | Auto-clones URLs (`try-rs <url>`) and marks repos with (). |
+| **📅 Auto-Dating** | Creates directories like `rust-test` automatically. |
+| **� Git Integration** | Auto-clones URLs (`try-rs <url>`) and marks repos with (). |
 | **👀 Content Preview** | Inspect files inside a folder before entering it. |
 | **📝 Editor Integration** | Open experiments directly in your editor (`Ctrl+E`). |
 | **🎨 Theming** | Customizable UI colors (Catppuccin Mocha default). |
@@ -131,7 +131,7 @@ Simply type try-rs (or your alias) in your terminal.
 | `Enter`  | Select directory (or create new if text doesn't match) |
 | `Ctrl+D` | Delete the selected directory (triggers popup)       |
 | `Ctrl+E` | Open in editor (configured in config.toml)           |
-| `Esc`    | Cancel / Close Popup                                 |
+| `Esc/Ctrl+C`    | Cancel / Close Popup / Exit                                 |
 
 ### CLI Commands
 
