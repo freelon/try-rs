@@ -529,7 +529,7 @@ struct Config {
 
 // Helper function to replace "~" with the actual home path
 fn expand_path(path_str: &str) -> PathBuf {
-    if path_str.starts_with("~/") {
+    if path_str.starts_with("~/") || (cfg!(windows) && path_str.starts_with("~\\")) {
         if let Some(home) = dirs::home_dir() {
             // Remove "~/" (first 2 chars) and join with home
             return home.join(&path_str[2..]);
@@ -554,7 +554,8 @@ fn load_configuration() -> (PathBuf, Theme, Option<String>, bool) {
     // 3. Define the old default (fallback)
     let default_path = dirs::home_dir()
         .expect("Folder not found")
-        .join("work/tries");
+        .join("work")
+        .join("tries");
 
     let mut theme = Theme::default();
     let try_path = std::env::var_os("TRY_PATH");
