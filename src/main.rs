@@ -90,22 +90,22 @@ impl App {
         let mut entries = Vec::new();
         if let Ok(read_dir) = fs::read_dir(&path) {
             for entry in read_dir.flatten() {
-                if let Ok(metadata) = entry.metadata() {
-                    if metadata.is_dir() {
-                        let name = entry.file_name().to_string_lossy().to_string();
-                        let is_git = entry.path().join(".git").exists();
-                        let is_mise = entry.path().join("mise.toml").exists();
-                        let is_cargo = entry.path().join("Cargo.toml").exists();
-                        entries.push(TryEntry {
-                            name,
-                            modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
-                            created: metadata.created().unwrap_or(SystemTime::UNIX_EPOCH),
-                            score: 0,
-                            is_git,
-                            is_mise,
-                            is_cargo,
-                        });
-                    }
+                if let Ok(metadata) = entry.metadata()
+                    && metadata.is_dir()
+                {
+                    let name = entry.file_name().to_string_lossy().to_string();
+                    let is_git = entry.path().join(".git").exists();
+                    let is_mise = entry.path().join("mise.toml").exists();
+                    let is_cargo = entry.path().join("Cargo.toml").exists();
+                    entries.push(TryEntry {
+                        name,
+                        modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
+                        created: metadata.created().unwrap_or(SystemTime::UNIX_EPOCH),
+                        score: 0,
+                        is_git,
+                        is_mise,
+                        is_cargo,
+                    });
                 }
             }
         }
@@ -300,13 +300,19 @@ fn run_app(
                     let cargo_icon = if entry.is_cargo { " " } else { "" };
                     let cargo_width = if entry.is_cargo { 2 } else { 0 };
                     let icon_width = 2; // "📁" takes 2 columns
-                    
+
                     let created_dt: chrono::DateTime<Local> = entry.created.into();
                     let created_text = created_dt.format("%Y-%m-%d").to_string();
                     let created_width = created_text.chars().count();
 
                     // Calculate space for name
-                    let reserved = date_width + git_width + mise_width + cargo_width + icon_width + created_width + 2; // +2 for gaps
+                    let reserved = date_width
+                        + git_width
+                        + mise_width
+                        + cargo_width
+                        + icon_width
+                        + created_width
+                        + 2; // +2 for gaps
                     let available_for_name = width.saturating_sub(reserved);
                     let name_len = entry.name.chars().count();
 
@@ -317,7 +323,16 @@ fn run_app(
                     } else {
                         (
                             entry.name.clone(),
-                            width.saturating_sub(icon_width + created_width + 1 + name_len + date_width + git_width + mise_width + cargo_width),
+                            width.saturating_sub(
+                                icon_width
+                                    + created_width
+                                    + 1
+                                    + name_len
+                                    + date_width
+                                    + git_width
+                                    + mise_width
+                                    + cargo_width,
+                            ),
                         )
                     };
 
@@ -535,11 +550,11 @@ struct Config {
 
 // Helper function to replace "~" with the actual home path
 fn expand_path(path_str: &str) -> PathBuf {
-    if path_str.starts_with("~/") || (cfg!(windows) && path_str.starts_with("~\\")) {
-        if let Some(home) = dirs::home_dir() {
-            // Remove "~/" (first 2 chars) and join with home
-            return home.join(&path_str[2..]);
-        }
+    if (path_str.starts_with("~/") || (cfg!(windows) && path_str.starts_with("~\\")))
+        && let Some(home) = dirs::home_dir()
+    {
+        // Remove "~/" (first 2 chars) and join with home
+        return home.join(&path_str[2..]);
     }
     PathBuf::from(path_str)
 }
@@ -784,12 +799,21 @@ function try-rs {
 }
 "#;
     fs::write(&file_path, content.trim())?;
-    eprintln!("PowerShell function file created at: {}", file_path.display());
+    eprintln!(
+        "PowerShell function file created at: {}",
+        file_path.display()
+    );
 
     // 2. Find the PowerShell profile and add the source command
     let home_dir = dirs::home_dir().expect("Could not find home directory");
-    let profile_path_ps7 = home_dir.join("Documents").join("PowerShell").join("Microsoft.PowerShell_profile.ps1");
-    let profile_path_ps5 = home_dir.join("Documents").join("WindowsPowerShell").join("Microsoft.PowerShell_profile.ps1");
+    let profile_path_ps7 = home_dir
+        .join("Documents")
+        .join("PowerShell")
+        .join("Microsoft.PowerShell_profile.ps1");
+    let profile_path_ps5 = home_dir
+        .join("Documents")
+        .join("WindowsPowerShell")
+        .join("Microsoft.PowerShell_profile.ps1");
 
     let profile_path = if profile_path_ps7.exists() {
         profile_path_ps7
@@ -800,10 +824,10 @@ function try-rs {
         profile_path_ps7
     };
 
-    if let Some(parent) = profile_path.parent() {
-        if !parent.exists() {
-            fs::create_dir_all(parent)?;
-        }
+    if let Some(parent) = profile_path.parent()
+        && !parent.exists()
+    {
+        fs::create_dir_all(parent)?;
     }
 
     // The command to add to the profile. Note the dot-sourcing.
@@ -818,17 +842,85 @@ function try-rs {
             writeln!(file, "{}", source_cmd)?;
             eprintln!("Added configuration to {}", profile_path.display());
         } else {
-            eprintln!("Configuration already present in {}", profile_path.display());
+            eprintln!(
+                "Configuration already present in {}",
+                profile_path.display()
+            );
         }
     } else {
         let mut file = fs::File::create(&profile_path)?;
         writeln!(file, "# try-rs integration")?;
         writeln!(file, "{}", source_cmd)?;
-        eprintln!("PowerShell profile created and configured at: {}", profile_path.display());
+        eprintln!(
+            "PowerShell profile created and configured at: {}",
+            profile_path.display()
+        );
     }
 
-    eprintln!("You may need to restart your shell or run '. {}' to apply changes.", profile_path.display());
-    eprintln!("If you get an error about running scripts, you may need to run: Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned");
+    eprintln!(
+        "You may need to restart your shell or run '. {}' to apply changes.",
+        profile_path.display()
+    );
+    eprintln!(
+        "If you get an error about running scripts, you may need to run: Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned"
+    );
+
+    Ok(())
+}
+
+fn setup_nushell() -> Result<()> {
+    let config_dir = dirs::config_dir()
+        .expect("Could not find config directory")
+        .join("nushell");
+
+    let app_config_dir = dirs::config_dir()
+        .expect("Could not find config directory")
+        .join("try-rs");
+
+    if !app_config_dir.exists() {
+        fs::create_dir_all(&app_config_dir)?;
+    }
+
+    let file_path = app_config_dir.join("try-rs.nu");
+    let content = r#"def --wrapped try-rs [...args] {
+    # Capture output. Stderr (TUI) goes directly to terminal.
+    let output = (try-rs.exe ...$args)
+
+    if ($output | is-not-empty) {
+
+        # Grabs the path out of stdout returned by the binary and removes the single quotes
+        let $path = ($output | split row ' ').1 | str replace --all "\'" ''
+        cd $path
+    }
+}
+"#;
+
+    fs::write(&file_path, content)?;
+    eprintln!("Nushell function created at: {}", file_path.display());
+
+    // Modify config.nu to source the new file
+    let nu_config_path = config_dir.join("config.nu");
+    let source_cmd = format!("source {}", file_path.display());
+
+    if nu_config_path.exists() {
+        let nu_content = fs::read_to_string(&nu_config_path)?;
+        if !nu_content.contains(&source_cmd) {
+            use std::io::Write;
+            let mut file = fs::OpenOptions::new().append(true).open(&nu_config_path)?;
+            writeln!(file, "\n# try-rs integration")?;
+            writeln!(file, "{}", source_cmd)?;
+            eprintln!("Added configuration to {}", nu_config_path.display());
+        } else {
+            eprintln!(
+                "Configuration already present in {}",
+                nu_config_path.display()
+            );
+        }
+    } else {
+        eprintln!("Could not find config.nu at {}", nu_config_path.display());
+        eprintln!("Please add the following line manually:");
+        eprintln!("{}", source_cmd);
+    }
 
     Ok(())
 }
@@ -852,6 +944,9 @@ enum Shell {
     Fish,
     Zsh,
     Bash,
+    #[allow(clippy::enum_variant_names)]
+    NuShell,
+    #[allow(clippy::enum_variant_names)]
     PowerShell,
 }
 
@@ -878,6 +973,7 @@ fn main() -> Result<()> {
             Shell::Zsh => setup_zsh()?,
             Shell::Bash => setup_bash()?,
             Shell::PowerShell => setup_powershell()?,
+            Shell::NuShell => setup_nushell()?,
         }
         return Ok(());
     }
@@ -888,15 +984,20 @@ fn main() -> Result<()> {
             // On Windows, PowerShell is the most likely modern shell.
             Some(Shell::PowerShell)
         } else {
-            let shell = std::env::var("SHELL").unwrap_or_default();
-            if shell.contains("fish") {
-                Some(Shell::Fish)
-            } else if shell.contains("zsh") {
-                Some(Shell::Zsh)
-            } else if shell.contains("bash") {
-                Some(Shell::Bash)
+            // Check for Nushell first
+            if std::env::var("NU_VERSION").is_ok() {
+                Some(Shell::NuShell)
             } else {
-                None
+                let shell = std::env::var("SHELL").unwrap_or_default();
+                if shell.contains("fish") {
+                    Some(Shell::Fish)
+                } else if shell.contains("zsh") {
+                    Some(Shell::Zsh)
+                } else if shell.contains("bash") {
+                    Some(Shell::Bash)
+                } else {
+                    None
+                }
             }
         };
 
@@ -915,6 +1016,7 @@ fn main() -> Result<()> {
                     Shell::Zsh => setup_zsh()?,
                     Shell::Bash => setup_bash()?,
                     Shell::PowerShell => setup_powershell()?,
+                    Shell::NuShell => setup_nushell()?,
                 }
             }
         }
