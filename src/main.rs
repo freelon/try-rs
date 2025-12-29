@@ -758,6 +758,81 @@ fn setup_bash() -> Result<()> {
     Ok(())
 }
 
+fn setup_powershell() -> Result<()> {
+    // 1. Create the function file in the app's config dir
+    let config_dir = dirs::config_dir().unwrap_or_else(|| {
+        dirs::home_dir()
+            .expect("Could not find home directory")
+            .join(".config")
+    });
+    let app_config_dir = config_dir.join("try-rs");
+    if !app_config_dir.exists() {
+        fs::create_dir_all(&app_config_dir)?;
+    }
+
+    let file_path = app_config_dir.join("try-rs.ps1");
+    let content = r#"
+# try-rs integration for PowerShell
+function try-rs {
+    # Captures the output of the binary (stdout) which is the "cd" or editor command
+    # The TUI is rendered on stderr, so it doesn't interfere.
+    $command = (try-rs.exe @args)
+
+    if ($command) {
+        Invoke-Expression $command
+    }
+}
+"#;
+    fs::write(&file_path, content.trim())?;
+    eprintln!("PowerShell function file created at: {}", file_path.display());
+
+    // 2. Find the PowerShell profile and add the source command
+    let home_dir = dirs::home_dir().expect("Could not find home directory");
+    let profile_path_ps7 = home_dir.join("Documents").join("PowerShell").join("Microsoft.PowerShell_profile.ps1");
+    let profile_path_ps5 = home_dir.join("Documents").join("WindowsPowerShell").join("Microsoft.PowerShell_profile.ps1");
+
+    let profile_path = if profile_path_ps7.exists() {
+        profile_path_ps7
+    } else if profile_path_ps5.exists() {
+        profile_path_ps5
+    } else {
+        // If neither exists, default to the modern path.
+        profile_path_ps7
+    };
+
+    if let Some(parent) = profile_path.parent() {
+        if !parent.exists() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+
+    // The command to add to the profile. Note the dot-sourcing.
+    let source_cmd = format!(". '{}'", file_path.display());
+
+    if profile_path.exists() {
+        let profile_content = fs::read_to_string(&profile_path)?;
+        if !profile_content.contains(&source_cmd) {
+            use std::io::Write;
+            let mut file = fs::OpenOptions::new().append(true).open(&profile_path)?;
+            writeln!(file, "\n# try-rs integration")?;
+            writeln!(file, "{}", source_cmd)?;
+            eprintln!("Added configuration to {}", profile_path.display());
+        } else {
+            eprintln!("Configuration already present in {}", profile_path.display());
+        }
+    } else {
+        let mut file = fs::File::create(&profile_path)?;
+        writeln!(file, "# try-rs integration")?;
+        writeln!(file, "{}", source_cmd)?;
+        eprintln!("PowerShell profile created and configured at: {}", profile_path.display());
+    }
+
+    eprintln!("You may need to restart your shell or run '. {}' to apply changes.", profile_path.display());
+    eprintln!("If you get an error about running scripts, you may need to run: Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned");
+
+    Ok(())
+}
+
 #[derive(Parser)]
 #[command(name = "try-rs")]
 #[command(about = format!("🦀 try-rs {}\nA blazing fast, Rust-based workspace manager for your temporary experiments.", env!("CARGO_PKG_VERSION")), long_about = None)]
@@ -777,6 +852,7 @@ enum Shell {
     Fish,
     Zsh,
     Bash,
+    PowerShell,
 }
 
 fn main() -> Result<()> {
@@ -801,21 +877,27 @@ fn main() -> Result<()> {
             Shell::Fish => setup_fish()?,
             Shell::Zsh => setup_zsh()?,
             Shell::Bash => setup_bash()?,
+            Shell::PowerShell => setup_powershell()?,
         }
         return Ok(());
     }
 
     // Handle First Run / Interactive Setup
     if is_first_run && cli.setup.is_none() {
-        let shell = std::env::var("SHELL").unwrap_or_default();
-        let shell_type = if shell.contains("fish") {
-            Some(Shell::Fish)
-        } else if shell.contains("zsh") {
-            Some(Shell::Zsh)
-        } else if shell.contains("bash") {
-            Some(Shell::Bash)
+        let shell_type = if cfg!(windows) {
+            // On Windows, PowerShell is the most likely modern shell.
+            Some(Shell::PowerShell)
         } else {
-            None
+            let shell = std::env::var("SHELL").unwrap_or_default();
+            if shell.contains("fish") {
+                Some(Shell::Fish)
+            } else if shell.contains("zsh") {
+                Some(Shell::Zsh)
+            } else if shell.contains("bash") {
+                Some(Shell::Bash)
+            } else {
+                None
+            }
         };
 
         if let Some(s) = shell_type {
@@ -832,6 +914,7 @@ fn main() -> Result<()> {
                     Shell::Fish => setup_fish()?,
                     Shell::Zsh => setup_zsh()?,
                     Shell::Bash => setup_bash()?,
+                    Shell::PowerShell => setup_powershell()?,
                 }
             }
         }

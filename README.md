@@ -94,6 +94,11 @@ try-rs --setup zsh
 try-rs --setup bash
 ```
 
+ Powershell
+
+```bash
+try-rs --setup powershell
+```
 
 2. Config File
 By default, experiments are stored in `~/work/tries`. You can customize the path and the UI colors (themes). To change this, create `~/.config/try-rs/config.toml`:
