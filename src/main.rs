@@ -780,7 +780,22 @@ enum Shell {
 }
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(err) => {
+            // The shell wrapper for `try-rs` captures stdout to get the `cd` command.
+            // All other output (TUI, help, errors) must go to stderr to not interfere.
+            //
+            // `err.print()` would print to stdout for --help, which is not what we want.
+            // So we manually print to stderr.
+            let mut stderr = std::io::stderr();
+            // The Display trait on the error will produce the help/error text.
+            write!(stderr, "{}", err).unwrap();
+
+            // Exit with 0 for help/version, and 1 for other errors.
+            std::process::exit(if err.use_stderr() { 1 } else { 0 });
+        }
+    };
     let (tries_dir, theme, editor_cmd, is_first_run) = load_configuration();
 
     // Ensure the directory exists (either from config or default)
