@@ -442,6 +442,7 @@ fn run_app(
         // --- KEY HANDLING ---
         if event::poll(std::time::Duration::from_millis(50))?
             && let Event::Key(key) = event::read()?
+            && key.is_press()
         {
             // Behavior depends on the mode
             match app.mode {
