@@ -19,19 +19,22 @@
 | **🖼️ Rich TUI** | Beautiful terminal interface built with [Ratatui](https://github.com/ratatui/ratatui). |
 | **🔍 Fuzzy Search** | Instantly find old experiments with smart matching. |
 | **📅 Auto-Dating** | Creates directories like `rust-test` automatically. |
-| **� Git Integration** | Auto-clones URLs (`try-rs <url>`) and marks repos with (). |
+| ** Git Integration** | Auto-clones URLs (`try-rs <url>`) and marks repos with (). |
 | **👀 Content Preview** | Inspect files inside a folder before entering it. |
 | **📝 Editor Integration** | Open experiments directly in your editor (`Ctrl+E`). |
 | **🎨 Theming** | Customizable UI colors (Catppuccin Mocha default). |
 | **🗑️ Safe Deletion** | Delete old experiments via UI with confirmation (`Ctrl+D`). |
-| **⚙️ Configurable** | Supports XDG Base Directory (`~/.config/try-rs/config.toml`). |
+| **⚙️ Configurable** | Supports XDG Base Directory (view section [Configuration](#configuration)). |
+| **🐚 Multi-Shell Support** | Supports Fish, Zsh, Bash, Power Shell and Nushell. |
+| **💻 Multi-OS Support** | Supports Linux, macOS and Windows. |
+| **🏷️ Icons Identification** | Supports icons identification projects (` 󰬔     `). |
 
 ## 📦 Installation
 
 ### Prerequisites
 
-* Rust & Cargo installed.
-* A shell (Fish, Zsh, Bash).
+* Rust & Cargo installed ([Building from source](#building-from-source) or [Cargo install try-rs](#cargo-install-try-rs)).
+* A shell (Fish, Zsh, Bash, Power Shell or Nushell).
 * A **Nerd Font** installed (required for icons like  and 🦀).
 
 ### Building from source
@@ -56,6 +59,8 @@ yay -S try-rs-bin
 ```bash
 nix profile install github:tassiovirginio/try-rs
 ```
+### Automatic Setup
+On the first run, **try-rs** will attempt to detect your shell and ask if you want to automatically configure the shell integration.
  
 
 ⚙️ Configuration
@@ -94,16 +99,24 @@ try-rs --setup bash
 try-rs --setup power-shell
 ```
 
-Nushell
+🐚 Nushell
 ```bash
 try-rs --setup nu-shell
 ```
 
-2. Config File
-By default, experiments are stored in `~/work/tries`. You can customize the path and the UI colors (themes). To change this, create `~/.config/try-rs/config.toml`:
+### 2. Config File
+The configuration file is stored in a platform-specific directory:
+
+| Platform | Value | Example |
+| :--- | :--- | :--- |
+| **Linux** | `$XDG_CONFIG_HOME` or `$HOME/.config` | `/home/tassiovirginio/.config/try-rs` |
+| **macOS** | `$HOME/Library/Application Support` | `/Users/tassiovirginio/Library/Application Support/try-rs` |
+| **Windows** | `{FOLDERID_RoamingAppData}` | `C:\Users\tassiovirginio\AppData\Roaming\try-rs` |
+
+By default, experiments are stored in `~/work/tries`. You can customize the path and the UI colors (themes). To change this, create `config.toml` in the directory shown above:
 
 ```toml
-# ~/.config/try-rs/config.toml
+# config.toml
 tries_path = "~/Development/playground"
 editor = "code" # Optional: code, nvim, hx, etc.
 
@@ -119,6 +132,16 @@ status_message = "Yellow"
 popup_bg = "DarkGray"
 popup_text = "LightRed"
 ```
+
+### 3. Environment Variables
+You can also configure **try-rs** using environment variables:
+
+| Variable | Description |
+| :--- | :--- |
+| `TRY_PATH` | Overrides the path where experiments are stored. |
+| `TRY_CONFIG_DIR` | Overrides the default configuration directory. |
+| `TRY_CONFIG` | Overrides the config filename (defaults to `config.toml`). |
+| `VISUAL` / `EDITOR` | Default editor to use if not specified in `config.toml`. |
 
 
 
@@ -146,7 +169,8 @@ You can also bypass the UI:
 | `try-rs`                                     | Opens the TUI                                |
 | `try-rs <name>`                              | Create (or jump to) a named experiment       |
 | `try-rs <https://github.com/user/repo>` | Clones a repository into a dated folder      |
-| `try-rs --setup <shell>` | setup shell integration (fish, zsh, bash)    |
+| `try-rs -s <url>` | Shallow clone (depth 1)                       |
+| `try-rs --setup <shell>` | setup shell integration (fish, zsh, bash, power-shell, nu-shell) |
 | `try-rs --version`                           | Show application version                     |
 | `try-rs --help`                              | Show help message                            |
 
