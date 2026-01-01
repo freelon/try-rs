@@ -1,4 +1,4 @@
-# 🦀 try-rs 🦀 -> [SITE](https://try-rs.org)
+# 🦀 try-rs 🦀 - [try-rs.org](https://try-rs.org)
 > **A blazing fast, Rust-based workspace manager for your temporary experiments.**
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
