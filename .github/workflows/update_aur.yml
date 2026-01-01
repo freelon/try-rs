@@ -84,7 +84,7 @@ jobs:
           fi
           
           git config user.name "Tássio Virginio"
-          git config user.email "tassio.virginio@ufba.br"
+          git config user.email "tassiovirginio@gmail.com"
           
           git add PKGBUILD .SRCINFO
           git commit -m "Update to $TAG_NAME"
