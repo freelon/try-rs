@@ -31,7 +31,8 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p /root/.ssh
-          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > /root/.ssh/id_ed25519
+          # O printf "%s\n" garante que haja uma quebra de linha no final
+          printf "%s\n" "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > /root/.ssh/id_ed25519
           chmod 600 /root/.ssh/id_ed25519
           ssh-keyscan aur.archlinux.org >> /root/.ssh/known_hosts
 
