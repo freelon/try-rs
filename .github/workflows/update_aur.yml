@@ -35,6 +35,15 @@ jobs:
           printf "%s\n" "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > /root/.ssh/id_ed25519
           chmod 600 /root/.ssh/id_ed25519
           ssh-keyscan aur.archlinux.org >> /root/.ssh/known_hosts
+    
+      - name: Debug SSH Key Format
+        run: |
+          echo "Primeira linha:"
+          head -n 1 /root/.ssh/id_ed25519
+          echo "Última linha:"
+          tail -n 1 /root/.ssh/id_ed25519
+          echo "Contagem de linhas:"
+          wc -l /root/.ssh/id_ed25519
 
       - name: Clone AUR repo
         run: |
