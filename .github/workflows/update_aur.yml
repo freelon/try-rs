@@ -1,17 +1,15 @@
 name: Update AUR
 
 on:
-  # Em vez de 'push' ou 'release', ele escuta outro workflow
   workflow_run:
-    workflows: ["GitHub Release"]       # O "name:" exato do seu arquivo de release
+    workflows: ["GitHub Release"] # Nome exato do seu workflow de Release
     types:
       - completed
 
 jobs:
   aur:
-    # IMPORTANTE: Só roda se o workflow anterior foi SUCESSO
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     container: archlinux:base-devel
 
     steps:
@@ -19,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        # Instala git e openssh necessários para clonar/push
+        # Instala git e openssh no container Arch
         run: pacman -Sy --noconfirm git openssh
 
       - name: Setup SSH
@@ -30,36 +28,43 @@ jobs:
           ssh-keyscan aur.archlinux.org >> /root/.ssh/known_hosts
 
       - name: Clone AUR repo
-        # 2. Corrigido para try-rs-bin se esse for seu alvo
         run: |
+          # Clona o repositório binário do AUR
           git clone ssh://aur@aur.archlinux.org/try-rs-bin.git aur
 
       - name: Update PKGBUILD and Checksums
         run: |
-          # Pega a versão da tag do release (ex: v0.1.0 -> 0.1.0)
-          VERSION=${GITHUB_REF#refs/tags/v}
-          cd aur
+          # 1. Captura a Tag corretamente do evento workflow_run
+          TAG_NAME=${{ github.event.workflow_run.head_branch }}
+          VERSION=${TAG_NAME#v}
           
-          # Atualiza a versão no PKGBUILD
+          echo "Atualizando para a versão: $VERSION"
+
+          cd aur
+
+          # 2. Atualiza versão e reseta o release para 1
           sed -i "s/^pkgver=.*/pkgver=$VERSION/" PKGBUILD
           sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
-          
-          # 3. Cria usuário 'builder' pois makepkg não roda como root
+
+          # 3. Prepara usuário 'builder' (makepkg não roda como root)
           useradd -m builder
           chown -R builder:builder .
-          
-          # Roda updpkgsums e mksrcinfo como usuário comum
+
+          # 4. Atualiza checksums (baixa o binário do release) e gera .SRCINFO
           su builder -c "updpkgsums"
           su builder -c "makepkg --printsrcinfo > .SRCINFO"
-          
-          # (Opcional) Verifique se os arquivos mudaram antes de commitar
-          git config --global --add safe.directory /__w/try-rs/try-rs/aur
+
+          # 5. Corrige permissão de diretório para o git (pois mudamos o dono acima)
+          git config --global --add safe.directory $PWD
 
       - name: Commit and push
         run: |
           cd aur
+          TAG_NAME=${{ github.event.workflow_run.head_branch }}
+          
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          
           git add PKGBUILD .SRCINFO
-          git commit -m "Update to $GITHUB_REF_NAME"
+          git commit -m "Update to $TAG_NAME"
           git push
