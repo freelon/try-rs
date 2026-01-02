@@ -169,6 +169,7 @@ You can also bypass the UI:
 | `try-rs`                                     | Opens the TUI                                |
 | `try-rs <name>`                              | Create (or jump to) a named experiment       |
 | `try-rs <https://github.com/user/repo>` | Clones a repository into a dated folder      |
+| `try-rs <https://github.com/user/repo> <name>` | Clones a repository into a specific folder name |
 | `try-rs -s <url>` | Shallow clone (depth 1)                       |
 | `try-rs --setup <shell>` | setup shell integration (fish, zsh, bash, power-shell, nu-shell) |
 | `try-rs --version`                           | Show application version                     |

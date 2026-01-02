@@ -9,6 +9,10 @@ pub struct Cli {
     #[arg(value_name = "NAME_OR_URL")]
     pub name_or_url: Option<String>,
 
+    /// Destination folder name (optional)
+    #[arg(value_name = "DESTINATION")]
+    pub destination: Option<String>,
+
     /// Generate shell integration code
     #[arg(long)]
     pub setup: Option<Shell>,

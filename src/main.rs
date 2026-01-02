@@ -142,7 +142,7 @@ fn main() -> Result<()> {
             if is_git_url(&selection) {
                 let repo_name = extract_repo_name(&selection);
 
-                let folder_name = repo_name;
+                let folder_name = cli.destination.clone().unwrap_or(repo_name);
                 let new_path = tries_dir.join(&folder_name);
 
                 eprintln!("Cloning {} into {}...", selection, folder_name);
