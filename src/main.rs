@@ -13,7 +13,6 @@ use std::{
     fs,
     io::{self, Write},
     path::PathBuf,
-
 };
 
 mod tui;
