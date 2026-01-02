@@ -22,7 +22,7 @@
 | ** Git Integration** | Auto-clones URLs (`try-rs <url>`) and marks repos with (). |
 | **👀 Content Preview** | Inspect files inside a folder before entering it. |
 | **📝 Editor Integration** | Open experiments directly in your editor (`Ctrl+E`). |
-| **🎨 Theming** | Customizable UI colors (Catppuccin Mocha default). |
+| **🎨 Theming** | Switch themes at runtime (`Ctrl+T`) or customize via config. |
 | **🗑️ Safe Deletion** | Delete old experiments via UI with confirmation (`Ctrl+D`). |
 | **⚙️ Configurable** | Supports XDG Base Directory (view section [Configuration](#configuration)). |
 | **🐚 Multi-Shell Support** | Supports Fish, Zsh, Bash, Power Shell and Nushell. |
@@ -158,7 +158,21 @@ Simply type try-rs (or your alias) in your terminal.
 | `Enter`  | Select directory (or create new if text doesn't match) |
 | `Ctrl+D` | Delete the selected directory (triggers popup)       |
 | `Ctrl+E` | Open in editor (configured in config.toml)           |
+| `Ctrl+T` | Open theme selector                                  |
 | `Esc/Ctrl+C`    | Cancel / Close Popup / Exit                                 |
+
+### 🎨 Themes
+
+You can switch between themes at runtime by pressing `Ctrl+T`. The following themes are available:
+
+*   **Catppuccin Mocha** (Default)
+*   **Dracula**
+*   **JetBrains Darcula**
+*   **Gruvbox Dark**
+*   **Nord**
+*   **Tokyo Night**
+
+You can also define a custom theme in your `config.toml`.
 
 ### CLI Commands
 
