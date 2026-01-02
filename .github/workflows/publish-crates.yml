@@ -1,38 +1,24 @@
 name: Publish to crates.io
 
 on:
-  # 1. Automático: Escuta o fim do workflow de Release
-  workflow_run:
-    workflows: ["GitHub Release"] # O nome EXATO do seu arquivo de release
-    types: [completed]
-  
-  # 2. Manual: Caso precise rodar forçado
+  push:
+    tags:
+      - "v*"
   workflow_dispatch: {}
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    
-    # Só roda se for disparo manual OU se o Release anterior foi sucesso
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    
     permissions:
       contents: read
-      id-token: write # Necessário para autenticação OIDC do crates.io
-
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # CRUCIAL: Garante que estamos publicando o código exato da tag/release
-          # Se não colocar isso, ele pode tentar publicar a branch main
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      # Opcional: Se os testes já rodaram no Release, pode pular aqui para ganhar tempo.
-      # Mas manter é uma segurança extra.
       - name: Run tests
         run: cargo test
 
