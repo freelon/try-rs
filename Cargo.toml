@@ -26,7 +26,6 @@ clap = { version = "4.5.53", features = ["derive"] }
 maintainer = "Tassio Virginio <tassio.virginio@gmail.com>"
 copyright = "2024, Tassio Virginio"
 license-file = ["LICENSE", "4"]
-readme = "README.md"
 extended-description = """
 try-rs is a CLI tool designed to manage the chaos of temporary projects.
 It includes a TUI (Terminal User Interface) to create, navigate, and clean up your experiments,
