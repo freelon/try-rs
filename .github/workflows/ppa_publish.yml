@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*' # Dispara quando você cria uma tag como v0.1.35
+  workflow_dispatch: # Adiciona o botão para disparo manual
+    inputs:
+      tag_name:
+        description: 'Tag para buildar (ex: v0.1.35)'
+        required: true
+        default: 'v0.1.35'
 
 jobs:
   publish:
