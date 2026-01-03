@@ -46,9 +46,17 @@ jobs:
 
       - name: Sign and Upload to PPA
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
-          # Assina o arquivo .changes gerado
-          debsign -k 929893C048105286 ../try-rs_${VERSION}-1_source.changes
+          # Pega a versão real definida no arquivo debian/changelog
+          VERSION=$(dpkg-parsechangelog -S Version | cut -d'-' -f1)
+          PACKAGE=$(dpkg-parsechangelog -S Source)
+          
+          echo "Assinando pacote $PACKAGE versão $VERSION"
+          
+          # Usar a Fingerprint completa é melhor que o ID curto
+          debsign -k 189688CC065493DF24F54A05929893C048105286 ../${PACKAGE}_${VERSION}-1_source.changes
+          
+          # Upload
+          dput ppa:tassiovirginio/try-rs ../${PACKAGE}_${VERSION}-1_source.changes
           
           # Configura o dput para o seu PPA (Ajuste o caminho abaixo)
           # Substitua 'seu-usuario/try-rs' pelo seu caminho real no Launchpad
