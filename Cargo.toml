@@ -21,3 +21,21 @@ anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8"
 clap = { version = "4.5.53", features = ["derive"] }
+
+[package.metadata.deb]
+maintainer = "Tassio Virginio <tassio.virginio@gmail.com>"
+copyright = "2024, Tassio Virginio"
+license-file = ["LICENSE", "4"]
+readme = "README.md"
+extended-description = """
+try-rs is a CLI tool designed to manage the chaos of temporary projects.
+It includes a TUI (Terminal User Interface) to create, navigate, and clean up your experiments,
+with support for git cloning, auto-dating directories, and multiple project types.
+"""
+depends = "$auto"
+section = "utils"
+priority = "optional"
+assets = [
+    ["target/release/try-rs", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/try-rs/README.md", "644"],
+]
