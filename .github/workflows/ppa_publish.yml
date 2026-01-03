@@ -1,0 +1,49 @@
+name: Publish to PPA
+
+on:
+  push:
+    tags:
+      - 'v*' # Dispara quando você cria uma tag como v0.1.35
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Debian Packaging Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y debhelper devscripts dput-ng python3-debian
+
+      - name: Import GPG Key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Prepare Debian Source Package
+        run: |
+          # Extrai a versão da tag (remove o 'v')
+          VERSION=${GITHUB_REF_NAME#v}
+          
+          # O Launchpad exige um tarball do código fonte original (.orig.tar.gz)
+          tar -czf ../try-rs_${VERSION}.orig.tar.gz .
+          
+          # Constrói o pacote de origem (Source Package)
+          # -us -uc significa não assinar ainda, faremos isso no próximo passo
+          dpkg-buildpackage -S -us -uc
+
+      - name: Sign and Upload to PPA
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          # Assina o arquivo .changes gerado
+          debsign -k 929893C048105286 ../try-rs_${VERSION}-1_source.changes
+          
+          # Configura o dput para o seu PPA (Ajuste o caminho abaixo)
+          # Substitua 'seu-usuario/try-rs' pelo seu caminho real no Launchpad
+          dput ppa:tassiovirginio/try-rs ../try-rs_${VERSION}-1_source.changes
