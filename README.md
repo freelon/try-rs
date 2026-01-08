@@ -1,7 +1,7 @@
-<div style="text-align: center;">
-  <img src="https://raw.githubusercontent.com/tassiovirginio/try-rs.site/refs/heads/main/logo.png" alt="Centered image" height="50">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/tassiovirginio/try-rs.site/refs/heads/main/logo.png" alt="Centered image" height="150">
   <h1>🦀 try-rs 🦀</h1>
-</div>
+</p>
 
 site: [try-rs.org](https://try-rs.org)
 
