@@ -1,4 +1,4 @@
-# 🦀 try-rs 🦀 - [try-rs.org](https://try-rs.org)
+# 🦀 try-rs - [try-rs.org](https://try-rs.org) 🦀
 
 > **A blazing fast, Rust-based workspace manager for your temporary experiments.**
 
@@ -15,19 +15,19 @@
 
 | Feature                     | Description                                                                            |
 | :-------------------------- | :------------------------------------------------------------------------------------- |
-| ** Blazing Fast**         | Built in Rust, compiled to native binary. No interpreter lag.                          |
-| ** Rich TUI**             | Beautiful terminal interface built with [Ratatui](https://github.com/ratatui/ratatui). |
-| ** Fuzzy Search**         | Instantly find old experiments with smart matching.                                    |
-| ** Auto-Dating**          | Creates directories like `rust-test` automatically.                                    |
-| ** Git Integration**       | Auto-clones URLs (`try-rs <url>`) and marks repos with ().                            |
-| ** Content Preview**      | Inspect files inside a folder before entering it.                                      |
-| ** Editor Integration**   | Open experiments directly in your editor (`Ctrl+E`).                                   |
-| ** Theming**              | Switch themes at runtime (`Ctrl+T`) or customize via config.                           |
-| ** Safe Deletion**        | Delete old experiments via UI with confirmation (`Ctrl+D`).                            |
-| ** Configurable**         | Supports XDG Base Directory (view section [Configuration](#configuration)).            |
-| ** Multi-Shell Support**  | Supports Fish, Zsh, Bash, Power Shell and Nushell.                                     |
-| ** Multi-OS Support**     | Supports Linux, macOS and Windows.                                                     |
-| ** Icons Identification** | Supports icons identification projects (` 󰬔     `).                              |
+| **Blazing Fast**         | Built in Rust, compiled to native binary. No interpreter lag.                          |
+| **Rich TUI**             | Beautiful terminal interface built with [Ratatui](https://github.com/ratatui/ratatui). |
+| **Fuzzy Search**         | Instantly find old experiments with smart matching.                                    |
+| **Auto-Dating**          | Creates directories like `rust-test` automatically.                                    |
+| **Git Integration**       | Auto-clones URLs (`try-rs <url>`) and marks repos with ().                            |
+| **Content Preview**      | Inspect files inside a folder before entering it.                                      |
+| **Editor Integration**   | Open experiments directly in your editor (`Ctrl+E`).                                   |
+| **Theming**              | Switch themes at runtime (`Ctrl+T`) or customize via config.                           |
+| **Safe Deletion**        | Delete old experiments via UI with confirmation (`Ctrl+D`).                            |
+| **Configurable**         | Supports XDG Base Directory (view section [Configuration](#configuration)).            |
+| **Multi-Shell Support**  | Supports Fish, Zsh, Bash, Power Shell and Nushell.                                     |
+| **Multi-OS Support**     | Supports Linux, macOS and Windows.                                                     |
+| **Icons Identification** | Supports icons identification projects (` 󰬔     `).                              |
 
 ## Installation
 
