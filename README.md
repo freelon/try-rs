@@ -48,7 +48,6 @@ A blazing fast, Rust-based workspace manager for your temporary experiments.
 
 ### Prerequisites
 
-- Rust & Cargo installed ([Building from source](#building-from-source) or [Cargo install try-rs](#cargo-install-try-rs)).
 - A shell (Fish, Zsh, Bash, Power Shell or Nushell).
 - A **Nerd Font** installed (required for icons like  and 🦀).
 
