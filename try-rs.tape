@@ -1,5 +1,8 @@
 Output try-rs.gif
 
+Set Width 1400
+Set Height 800
+
 Require try-rs
 
 Set Shell fish
