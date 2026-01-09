@@ -142,7 +142,6 @@ pub fn setup_bash() -> Result<()> {
 }
 
 pub fn setup_powershell() -> Result<()> {
-    // 1. Create the function file in the app's config dir
     let config_dir = dirs::config_dir().unwrap_or_else(|| {
         dirs::home_dir()
             .expect("Could not find home directory")
@@ -172,7 +171,6 @@ function try-rs {
         file_path.display()
     );
 
-    // 2. Find the PowerShell profile and add the source command
     let home_dir = dirs::home_dir().expect("Could not find home directory");
     let profile_path_ps7 = home_dir
         .join("Documents")
@@ -188,7 +186,6 @@ function try-rs {
     } else if profile_path_ps5.exists() {
         profile_path_ps5
     } else {
-        // If neither exists, default to the modern path.
         profile_path_ps7
     };
 
@@ -198,7 +195,6 @@ function try-rs {
         fs::create_dir_all(parent)?;
     }
 
-    // The command to add to the profile. Note the dot-sourcing.
     let source_cmd = format!(". '{}'", file_path.display());
 
     if profile_path.exists() {
@@ -266,7 +262,6 @@ pub fn setup_nushell() -> Result<()> {
     fs::write(&file_path, content)?;
     eprintln!("Nushell function created at: {}", file_path.display());
 
-    // Modify config.nu to source the new file
     let nu_config_path = config_dir.join("config.nu");
     let source_cmd = format!("source {}", file_path.display());
 

@@ -23,7 +23,6 @@ pub enum AppMode {
     ConfigSaveLocationSelect,
 }
 
-// Data model (same as before)
 #[derive(Clone)]
 pub struct TryEntry {
     pub name: String,
@@ -158,26 +157,23 @@ impl Theme {
     }
 }
 
-// Our TUI state
 pub struct App {
-    pub query: String,                   // What the user typed
-    pub all_entries: Vec<TryEntry>,      // All directories found
-    pub filtered_entries: Vec<TryEntry>, // Directories filtered by search
-    pub selected_index: usize,           // Which item is currently selected in the list
-    pub should_quit: bool,               // Flag to exit the loop
-    pub final_selection: Option<String>, // The final result (for the shell)
+    pub query: String,
+    pub all_entries: Vec<TryEntry>,
+    pub filtered_entries: Vec<TryEntry>,
+    pub selected_index: usize,
+    pub should_quit: bool,
+    pub final_selection: Option<String>,
     pub mode: AppMode,
-    pub status_message: Option<String>, // Feedback message for the user
-    pub base_path: PathBuf,             // Base directory for tries
-    pub theme: Theme,                   // Application colors
-    pub editor_cmd: Option<String>,     // Editor command (e.g., "code", "nvim")
-    pub wants_editor: bool,             // Flag to indicate if we should open the editor
+    pub status_message: Option<String>,
+    pub base_path: PathBuf,
+    pub theme: Theme,
+    pub editor_cmd: Option<String>,
+    pub wants_editor: bool,
 
-    // Theme switching
     pub available_themes: Vec<Theme>,
     pub theme_list_state: ListState,
 
-    // Config persistence
     pub config_path: Option<PathBuf>,
     pub config_location_state: ListState,
 }
@@ -220,7 +216,6 @@ impl App {
                 }
             }
         }
-        // Initial sort: most recent first
         entries.sort_by(|a, b| b.modified.cmp(&a.modified));
 
         let themes = vec![
@@ -255,7 +250,6 @@ impl App {
         }
     }
 
-    // Filter update logic
     pub fn update_search(&mut self) {
         let matcher = SkimMatcherV2::default();
 
@@ -274,13 +268,11 @@ impl App {
                 })
                 .collect();
 
-            // Sort by fuzzy score
             self.filtered_entries.sort_by(|a, b| b.score.cmp(&a.score));
         }
-        self.selected_index = 0; // Resets the selection to the top
+        self.selected_index = 0;
     }
 
-    // Function to delete the selected item
     pub fn delete_selected(&mut self) {
         if let Some(entry_name) = self
             .filtered_entries
@@ -307,7 +299,6 @@ impl App {
 fn draw_popup(f: &mut Frame, title: &str, message: &str, theme: &Theme) {
     let area = f.area();
 
-    // 1. Define an area in the center (60% width, 20% height)
     let popup_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -326,10 +317,8 @@ fn draw_popup(f: &mut Frame, title: &str, message: &str, theme: &Theme) {
         ])
         .split(popup_layout[1])[1];
 
-    // 2. Clears the popup area (so the background text doesn't show through)
     f.render_widget(Clear, popup_area);
 
-    // 3. Creates the block with a red border (alert)
     let block = Block::default()
         .title(title)
         .borders(Borders::ALL)
@@ -511,7 +500,6 @@ pub fn run_app(
                     let minutes = (secs % 3600) / 60;
                     let date_str = format!("({:02}d {:02}h {:02}m)", days, hours, minutes);
 
-                    // Calculate available width (block borders take 2 columns)
                     let width = content_chunks[0].width.saturating_sub(5) as usize;
 
                     let date_text = date_str.to_string();
@@ -530,13 +518,12 @@ pub fn run_app(
                     let go_width = if entry.is_go { 2 } else { 0 };
                     let python_icon = if entry.is_python { " " } else { "" };
                     let python_width = if entry.is_python { 2 } else { 0 };
-                    let icon_width = 2; // "📁" takes 2 columns
+                    let icon_width = 2;
 
                     let created_dt: chrono::DateTime<Local> = entry.created.into();
                     let created_text = created_dt.format("%Y-%m-%d").to_string();
                     let created_width = created_text.chars().count();
 
-                    // Calculate space for name
                     let reserved = date_width
                         + git_width
                         + mise_width
@@ -547,7 +534,7 @@ pub fn run_app(
                         + python_width
                         + icon_width
                         + created_width
-                        + 2; // +2 for gaps
+                        + 2;
                     let available_for_name = width.saturating_sub(reserved);
                     let name_len = entry.name.chars().count();
 
@@ -826,7 +813,6 @@ pub fn run_app(
                             if let Some(theme) = app.available_themes.get(i) {
                                 app.theme = theme.clone();
 
-                                // Auto-save logic
                                 if let Some(ref path) = app.config_path {
                                     if let Err(e) = save_config(
                                         path,
@@ -889,7 +875,7 @@ pub fn run_app(
                                 } else {
                                     i
                                 }
-                            } // Only 2 options
+                            }
                             None => 0,
                         };
                         app.config_location_state.select(Some(i));
@@ -898,7 +884,6 @@ pub fn run_app(
                         if let Some(i) = app.config_location_state.selected() {
                             let config_name = get_file_config_toml_name();
                             let path = if i == 0 {
-                                // ~/.config/try-rs/config.toml
                                 dirs::config_dir()
                                     .unwrap_or_else(|| {
                                         dirs::home_dir().expect("Folder not found").join(".config")
@@ -906,8 +891,6 @@ pub fn run_app(
                                     .join("try-rs")
                                     .join(&config_name)
                             } else {
-                                // ~/.try-rs/config.toml (Simulating home dir behavior as requested, or strictly home?)
-                                // User said: "paste de configuração ou na pasta home do sistema"
                                 dirs::home_dir()
                                     .expect("Folder not found")
                                     .join(&config_name)

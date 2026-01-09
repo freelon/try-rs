@@ -35,12 +35,10 @@ fn main() -> Result<()> {
     };
     let (tries_dir, theme, editor_cmd, is_first_run, config_path) = load_configuration();
 
-    // Ensure the directory exists (either from config or default)
     if !tries_dir.exists() {
         fs::create_dir_all(&tries_dir)?;
     }
 
-    // Handle Shell Setup
     if let Some(shell) = cli.setup {
         match shell {
             Shell::Fish => setup_fish()?,
@@ -52,13 +50,10 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    // Handle First Run / Interactive Setup
     if is_first_run && cli.setup.is_none() {
         let shell_type = if cfg!(windows) {
-            // On Windows, PowerShell is the most likely modern shell.
             Some(Shell::PowerShell)
         } else {
-            // Check for Nushell first
             if std::env::var("NU_VERSION").is_ok() {
                 Some(Shell::NuShell)
             } else {
@@ -96,18 +91,12 @@ fn main() -> Result<()> {
         }
     }
 
-    // The 'selection' variable will hold the chosen name or URL.
-    // It can come from arguments (CLI) or the interface (TUI).
     let selection_result: Option<String>;
     let mut open_editor = false;
 
     if let Some(name) = cli.name_or_url {
-        // CLI MODE: The user passed an argument (e.g., try-rs https://...)
-        // We skip the graphical interface entirely.
         selection_result = Some(name);
     } else {
-        // TUI MODE: No arguments, open the visual interface.
-
         enable_raw_mode()?;
         let mut stderr = io::stderr();
         execute!(stderr, EnterAlternateScreen)?;
@@ -120,10 +109,8 @@ fn main() -> Result<()> {
             editor_cmd.clone(),
             config_path.clone(),
         );
-        // Run the app and capture the result
         let res = run_app(&mut terminal, app);
 
-        // Restore the terminal
         disable_raw_mode()?;
         execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
         terminal.show_cursor()?;
@@ -131,11 +118,9 @@ fn main() -> Result<()> {
         (selection_result, open_editor) = res?;
     }
 
-    // 3. Process the result (Common for both modes)
     if let Some(selection) = selection_result {
         let target_path = tries_dir.join(&selection);
 
-        // CASE 1: Does the folder already exist? Enter it.
         if target_path.exists() {
             if open_editor && let Some(cmd) = editor_cmd {
                 println!("{} '{}'", cmd, target_path.to_string_lossy());
@@ -143,7 +128,6 @@ fn main() -> Result<()> {
                 println!("cd '{}'", target_path.to_string_lossy());
             }
         } else {
-            // CASE 2: Is it a Git URL? Clone it!
             if is_git_url(&selection) {
                 let repo_name = extract_repo_name(&selection);
 
@@ -181,7 +165,6 @@ fn main() -> Result<()> {
                     }
                 }
             } else {
-                // CASE 3: Create an empty folder
                 let new_name = selection;
 
                 let new_path = tries_dir.join(&new_name);

@@ -34,7 +34,6 @@ pub fn get_file_config_toml_name() -> String {
 }
 
 pub fn load_file_config_toml_if_exists() -> Option<Config> {
-    // 1. Check TRY_CONFIG_DIR environment variable
     if let Some(env_dir) = std::env::var_os("TRY_CONFIG_DIR") {
         let config_path = PathBuf::from(env_dir).join(get_file_config_toml_name());
         if config_path.exists() {
@@ -46,7 +45,6 @@ pub fn load_file_config_toml_if_exists() -> Option<Config> {
         }
     }
 
-    // 2. Check XDG config dir (~/.config/try-rs/config.toml)
     let config_dir_config_toml = dirs::config_dir()
         .expect("Folder not found")
         .join("try-rs")
@@ -60,7 +58,6 @@ pub fn load_file_config_toml_if_exists() -> Option<Config> {
         }
     }
 
-    // 3. Check ~/.try-rs/config.toml (legacy/alternative)
     let home_dir_config_toml = dirs::home_dir()
         .expect("Folder not found")
         .join(".config")
@@ -79,7 +76,6 @@ pub fn load_file_config_toml_if_exists() -> Option<Config> {
 }
 
 pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<PathBuf>) {
-    // Default Path: Work/tries
     let default_path = dirs::home_dir()
         .expect("Folder not found")
         .join("work")
@@ -94,8 +90,6 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
         .or_else(|| std::env::var("EDITOR").ok());
     let mut is_first_run = false;
 
-    // Try to load any existing config
-    // Try to load any existing config
     let loaded_config_path = if let Some(path) = std::env::var_os("TRY_CONFIG_DIR")
         .map(|p| PathBuf::from(p).join(get_file_config_toml_name()))
         .filter(|p| p.exists())
@@ -126,7 +120,6 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
             editor_cmd = Some(editor);
         }
         if let Some(colors) = config.colors {
-            // Helper to parse color string to Color enum
             let parse = |opt: Option<String>, def: Color| -> Color {
                 opt.and_then(|s| Color::from_str(&s).ok()).unwrap_or(def)
             };
@@ -147,8 +140,6 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
             };
         }
     } else {
-        // No config found. We used to create it here, but now we wait for the user to save.
-        // This is a "first run" scenario for shell setup purposes.
         is_first_run = true;
     }
 
