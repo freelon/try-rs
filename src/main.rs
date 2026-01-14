@@ -34,7 +34,7 @@ fn main() -> Result<()> {
             std::process::exit(if err.use_stderr() { 1 } else { 0 });
         }
     };
-    let (tries_dir, theme, editor_cmd, is_first_run, config_path) = load_configuration();
+    let (tries_dir, theme, editor_cmd, _is_first_run, config_path) = load_configuration();
 
     if !tries_dir.exists() {
         fs::create_dir_all(&tries_dir)?;
@@ -51,42 +51,41 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    if is_first_run && cli.setup.is_none() {
+    if cli.setup.is_none() {
         let shell_type = if cfg!(windows) {
-            Some(Shell::PowerShell)
+            Some(shell::ShellType::PowerShell)
         } else {
             if std::env::var("NU_VERSION").is_ok() {
-                Some(Shell::NuShell)
+                Some(shell::ShellType::NuShell)
             } else {
                 let shell = std::env::var("SHELL").unwrap_or_default();
                 if shell.contains("fish") {
-                    Some(Shell::Fish)
+                    Some(shell::ShellType::Fish)
                 } else if shell.contains("zsh") {
-                    Some(Shell::Zsh)
+                    Some(shell::ShellType::Zsh)
                 } else if shell.contains("bash") {
-                    Some(Shell::Bash)
+                    Some(shell::ShellType::Bash)
                 } else {
                     None
                 }
             }
         };
 
-        if let Some(s) = shell_type {
-            eprintln!("Detected shell: {:?}", s);
-            eprint!(
-                "Shell integration not configured. Do you want to set it up for {:?}? [Y/n] ",
-                s
-            );
-            io::stderr().flush()?;
-            let mut input = String::new();
-            io::stdin().read_line(&mut input)?;
-            if input.trim().is_empty() || input.trim().eq_ignore_ascii_case("y") {
-                match s {
-                    Shell::Fish => setup_fish()?,
-                    Shell::Zsh => setup_zsh()?,
-                    Shell::Bash => setup_bash()?,
-                    Shell::PowerShell => setup_powershell()?,
-                    Shell::NuShell => setup_nushell()?,
+        if let Some(ref s) = shell_type {
+            if !shell::is_shell_integration_configured(s) {
+                eprintln!("Detected shell: {:?}", s);
+                eprint!("Shell integration not configured. Do you want to set it up? [Y/n] ");
+                io::stderr().flush()?;
+                let mut input = String::new();
+                io::stdin().read_line(&mut input)?;
+                if input.trim().is_empty() || input.trim().eq_ignore_ascii_case("y") {
+                    match s {
+                        shell::ShellType::Fish => setup_fish()?,
+                        shell::ShellType::Zsh => setup_zsh()?,
+                        shell::ShellType::Bash => setup_bash()?,
+                        shell::ShellType::PowerShell => setup_powershell()?,
+                        shell::ShellType::NuShell => setup_nushell()?,
+                    }
                 }
             }
         }

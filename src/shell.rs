@@ -1,6 +1,39 @@
 use anyhow::Result;
 use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
+
+#[derive(Debug)]
+pub enum ShellType {
+    Fish,
+    Zsh,
+    Bash,
+    PowerShell,
+    NuShell,
+}
+
+pub fn get_shell_integration_path(shell: &ShellType) -> PathBuf {
+    let config_dir = dirs::config_dir().unwrap_or_else(|| {
+        dirs::home_dir()
+            .expect("Could not find home directory")
+            .join(".config")
+    });
+
+    match shell {
+        ShellType::Fish => config_dir
+            .join("fish")
+            .join("functions")
+            .join("try-rs.fish"),
+        ShellType::Zsh => config_dir.join("try-rs").join("try-rs.zsh"),
+        ShellType::Bash => config_dir.join("try-rs").join("try-rs.bash"),
+        ShellType::PowerShell => config_dir.join("try-rs").join("try-rs.ps1"),
+        ShellType::NuShell => config_dir.join("try-rs").join("try-rs.nu"),
+    }
+}
+
+pub fn is_shell_integration_configured(shell: &ShellType) -> bool {
+    get_shell_integration_path(shell).exists()
+}
 
 pub fn setup_fish() -> Result<()> {
     let config_dir = dirs::config_dir().unwrap_or_else(|| {
@@ -68,7 +101,7 @@ pub fn setup_zsh() -> Result<()> {
 
     let home_dir = dirs::home_dir().expect("Could not find home directory");
     let zshrc_path = home_dir.join(".zshrc");
-    let source_cmd = format!("source {}", file_path.display());
+    let source_cmd = format!("source '{}'", file_path.display());
 
     if zshrc_path.exists() {
         let zshrc_content = fs::read_to_string(&zshrc_path)?;
@@ -76,7 +109,7 @@ pub fn setup_zsh() -> Result<()> {
             use std::io::Write;
             let mut file = fs::OpenOptions::new().append(true).open(&zshrc_path)?;
             writeln!(file, "\n# try-rs integration")?;
-            writeln!(file, "'{}'", source_cmd)?;
+            writeln!(file, "{}", source_cmd)?;
             eprintln!("Added configuration to ~/.zshrc");
         } else {
             eprintln!("Configuration already present in ~/.zshrc");
@@ -120,7 +153,7 @@ pub fn setup_bash() -> Result<()> {
 
     let home_dir = dirs::home_dir().expect("Could not find home directory");
     let bashrc_path = home_dir.join(".bashrc");
-    let source_cmd = format!("source {}", file_path.display());
+    let source_cmd = format!("source '{}'", file_path.display());
 
     if bashrc_path.exists() {
         let bashrc_content = fs::read_to_string(&bashrc_path)?;
@@ -128,7 +161,7 @@ pub fn setup_bash() -> Result<()> {
             use std::io::Write;
             let mut file = fs::OpenOptions::new().append(true).open(&bashrc_path)?;
             writeln!(file, "\n# try-rs integration")?;
-            writeln!(file, "'{}'", source_cmd)?;
+            writeln!(file, "{}", source_cmd)?;
             eprintln!("Added configuration to ~/.bashrc");
         } else {
             eprintln!("Configuration already present in ~/.bashrc");
@@ -263,7 +296,7 @@ pub fn setup_nushell() -> Result<()> {
     eprintln!("Nushell function created at: {}", file_path.display());
 
     let nu_config_path = config_dir.join("config.nu");
-    let source_cmd = format!("source {}", file_path.display());
+    let source_cmd = format!("source '{}'", file_path.display());
 
     if nu_config_path.exists() {
         let nu_content = fs::read_to_string(&nu_config_path)?;

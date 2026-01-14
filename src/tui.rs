@@ -357,14 +357,10 @@ fn draw_about_popup(f: &mut Frame, theme: &Theme) {
         ]),
         Line::from(""),
         Line::from(Span::styled(
-            "Tassio Virginio",
-            Style::default().fg(theme.list_highlight_fg),
-        )),
-        Line::from(""),
-        Line::from(Span::styled(
             "try-rs.org",
             Style::default().fg(theme.search_box),
         )),
+        Line::from(""),
         Line::from(Span::styled(
             "github.com/tassiovirginio/try-rs",
             Style::default().fg(theme.search_box),
