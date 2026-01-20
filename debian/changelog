@@ -1,3 +1,9 @@
+try-rs (0.1.41-1) noble; urgency=medium
+
+  * fix: respect TRY_CONFIG_DIR for shell integration paths
+
+ -- Tassio Virginio <tassiovirginio@gmail.com>  Mon, 20 Jan 2026 02:16:50 -0300
+
 try-rs (0.1.40-1) noble; urgency=medium
 
   * Update libs.
