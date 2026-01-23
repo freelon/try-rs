@@ -29,6 +29,17 @@ pub struct ThemeConfig {
     pub status_message: Option<String>,
     pub popup_bg: Option<String>,
     pub popup_text: Option<String>,
+    // Icon colors
+    pub icon_rust: Option<String>,
+    pub icon_maven: Option<String>,
+    pub icon_flutter: Option<String>,
+    pub icon_go: Option<String>,
+    pub icon_python: Option<String>,
+    pub icon_mise: Option<String>,
+    pub icon_worktree: Option<String>,
+    pub icon_worktree_lock: Option<String>,
+    pub icon_gitmodules: Option<String>,
+    pub icon_git: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -169,6 +180,16 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
                 status_message: parse(colors.status_message, def.status_message),
                 popup_bg: parse(colors.popup_bg, def.popup_bg),
                 popup_text: parse(colors.popup_text, def.popup_text),
+                icon_rust: parse(colors.icon_rust, def.icon_rust),
+                icon_maven: parse(colors.icon_maven, def.icon_maven),
+                icon_flutter: parse(colors.icon_flutter, def.icon_flutter),
+                icon_go: parse(colors.icon_go, def.icon_go),
+                icon_python: parse(colors.icon_python, def.icon_python),
+                icon_mise: parse(colors.icon_mise, def.icon_mise),
+                icon_worktree: parse(colors.icon_worktree, def.icon_worktree),
+                icon_worktree_lock: parse(colors.icon_worktree_lock, def.icon_worktree_lock),
+                icon_gitmodules: parse(colors.icon_gitmodules, def.icon_gitmodules),
+                icon_git: parse(colors.icon_git, def.icon_git),
             };
         }
     } else {
@@ -234,6 +255,16 @@ pub fn save_config(
         status_message: Some(color_to_string(theme.status_message)),
         popup_bg: Some(color_to_string(theme.popup_bg)),
         popup_text: Some(color_to_string(theme.popup_text)),
+        icon_rust: Some(color_to_string(theme.icon_rust)),
+        icon_maven: Some(color_to_string(theme.icon_maven)),
+        icon_flutter: Some(color_to_string(theme.icon_flutter)),
+        icon_go: Some(color_to_string(theme.icon_go)),
+        icon_python: Some(color_to_string(theme.icon_python)),
+        icon_mise: Some(color_to_string(theme.icon_mise)),
+        icon_worktree: Some(color_to_string(theme.icon_worktree)),
+        icon_worktree_lock: Some(color_to_string(theme.icon_worktree_lock)),
+        icon_gitmodules: Some(color_to_string(theme.icon_gitmodules)),
+        icon_git: Some(color_to_string(theme.icon_git)),
     };
 
     let config = Config {

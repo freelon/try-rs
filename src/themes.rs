@@ -31,15 +31,63 @@ pub struct Theme {
     // Popup colors
     pub popup_bg: Color,
     pub popup_text: Color,
+    // Icon colors
+    pub icon_rust: Color,
+    pub icon_maven: Color,
+    pub icon_flutter: Color,
+    pub icon_go: Color,
+    pub icon_python: Color,
+    pub icon_mise: Color,
+    pub icon_worktree: Color,
+    pub icon_worktree_lock: Color,
+    pub icon_gitmodules: Color,
+    pub icon_git: Color,
 }
 
 impl Default for Theme {
     fn default() -> Self {
-        Self::catppuccin_mocha()
+        Self::default_theme()
     }
 }
 
 impl Theme {
+    /// Default theme with the original hardcoded colors
+    pub fn default_theme() -> Self {
+        Self {
+            name: "Default".to_string(),
+            title_try: Color::Rgb(137, 180, 250),         // Blue
+            title_rs: Color::Rgb(243, 139, 168),          // Red
+            search_title: Color::Rgb(250, 179, 135),      // Peach
+            search_border: Color::Rgb(147, 153, 178),     // Overlay
+            folder_title: Color::Rgb(166, 227, 161),      // Green
+            folder_border: Color::Rgb(147, 153, 178),     // Overlay
+            disk_title: Color::Rgb(249, 226, 175),        // Yellow
+            disk_border: Color::Rgb(147, 153, 178),       // Overlay
+            preview_title: Color::Rgb(137, 180, 250),     // Blue
+            preview_border: Color::Rgb(147, 153, 178),    // Overlay
+            legends_title: Color::Rgb(203, 166, 247),     // Mauve
+            legends_border: Color::Rgb(147, 153, 178),    // Overlay
+            list_date: Color::Rgb(166, 173, 200),         // Subtext
+            list_highlight_bg: Color::Rgb(88, 91, 112),   // Surface
+            list_highlight_fg: Color::Rgb(205, 214, 244), // Text
+            helpers_colors: Color::Rgb(147, 153, 178),    // Overlay
+            status_message: Color::Rgb(249, 226, 175),    // Yellow
+            popup_bg: Color::Rgb(30, 30, 46),             // Base
+            popup_text: Color::Rgb(243, 139, 168),        // Red
+            // Default icon colors (original hardcoded values)
+            icon_rust: Color::Rgb(230, 100, 50),   // Rust orange
+            icon_maven: Color::Rgb(255, 150, 50),  // Maven orange
+            icon_flutter: Color::Rgb(2, 123, 222), // Flutter blue
+            icon_go: Color::Rgb(0, 173, 216),      // Go cyan
+            icon_python: Color::Yellow,            // Python yellow
+            icon_mise: Color::Rgb(250, 179, 135),  // Mise peach
+            icon_worktree: Color::Rgb(100, 180, 100), // Worktree green
+            icon_worktree_lock: Color::White,      // Lock white
+            icon_gitmodules: Color::Rgb(180, 130, 200), // Submodules purple
+            icon_git: Color::Rgb(240, 80, 50),     // Git red-orange
+        }
+    }
+
     pub fn catppuccin_mocha() -> Self {
         Self {
             name: "Catppuccin Mocha".to_string(),
@@ -62,6 +110,17 @@ impl Theme {
             status_message: Color::Rgb(249, 226, 175),    // Yellow
             popup_bg: Color::Rgb(30, 30, 46),             // Base
             popup_text: Color::Rgb(243, 139, 168),        // Red
+            // Catppuccin icon colors
+            icon_rust: Color::Rgb(250, 179, 135),     // Peach
+            icon_maven: Color::Rgb(243, 139, 168),    // Red
+            icon_flutter: Color::Rgb(137, 180, 250),  // Blue
+            icon_go: Color::Rgb(148, 226, 213),       // Teal
+            icon_python: Color::Rgb(249, 226, 175),   // Yellow
+            icon_mise: Color::Rgb(250, 179, 135),     // Peach
+            icon_worktree: Color::Rgb(166, 227, 161), // Green
+            icon_worktree_lock: Color::Rgb(166, 173, 200), // Subtext0
+            icon_gitmodules: Color::Rgb(203, 166, 247), // Mauve
+            icon_git: Color::Rgb(243, 139, 168),      // Red
         }
     }
 
@@ -87,6 +146,17 @@ impl Theme {
             status_message: Color::Rgb(241, 250, 140), // Yellow
             popup_bg: Color::Rgb(40, 42, 54),          // Background
             popup_text: Color::Rgb(255, 85, 85),       // Red
+            // Dracula icon colors
+            icon_rust: Color::Rgb(255, 184, 108),    // Orange
+            icon_maven: Color::Rgb(255, 85, 85),     // Red
+            icon_flutter: Color::Rgb(139, 233, 253), // Cyan
+            icon_go: Color::Rgb(139, 233, 253),      // Cyan
+            icon_python: Color::Rgb(241, 250, 140),  // Yellow
+            icon_mise: Color::Rgb(255, 184, 108),    // Orange
+            icon_worktree: Color::Rgb(80, 250, 123), // Green
+            icon_worktree_lock: Color::Rgb(248, 248, 242), // Foreground
+            icon_gitmodules: Color::Rgb(189, 147, 249), // Purple
+            icon_git: Color::Rgb(255, 121, 198),     // Pink
         }
     }
 
@@ -112,6 +182,17 @@ impl Theme {
             status_message: Color::Rgb(255, 198, 109),  // Gold
             popup_bg: Color::Rgb(60, 63, 65),           // Bg
             popup_text: Color::Rgb(204, 120, 50),       // Orange
+            // JetBrains Darcula icon colors
+            icon_rust: Color::Rgb(204, 120, 50),     // Orange
+            icon_maven: Color::Rgb(255, 198, 109),   // Gold
+            icon_flutter: Color::Rgb(78, 124, 238),  // Blue
+            icon_go: Color::Rgb(0, 173, 216),        // Go cyan
+            icon_python: Color::Rgb(255, 198, 109),  // Gold
+            icon_mise: Color::Rgb(204, 120, 50),     // Orange
+            icon_worktree: Color::Rgb(106, 135, 89), // Green
+            icon_worktree_lock: Color::Rgb(187, 187, 187), // Light Grey
+            icon_gitmodules: Color::Rgb(152, 118, 170), // Purple
+            icon_git: Color::Rgb(204, 120, 50),      // Orange
         }
     }
 
@@ -137,6 +218,17 @@ impl Theme {
             status_message: Color::Rgb(215, 153, 33),     // Orange
             popup_bg: Color::Rgb(40, 40, 40),             // Bg0
             popup_text: Color::Rgb(251, 73, 52),          // Red
+            // Gruvbox icon colors
+            icon_rust: Color::Rgb(254, 128, 25),     // Orange
+            icon_maven: Color::Rgb(251, 73, 52),     // Red
+            icon_flutter: Color::Rgb(131, 165, 152), // Aqua
+            icon_go: Color::Rgb(131, 165, 152),      // Aqua
+            icon_python: Color::Rgb(250, 189, 47),   // Yellow
+            icon_mise: Color::Rgb(254, 128, 25),     // Orange
+            icon_worktree: Color::Rgb(184, 187, 38), // Green
+            icon_worktree_lock: Color::Rgb(168, 153, 132), // Grey
+            icon_gitmodules: Color::Rgb(211, 134, 155), // Purple
+            icon_git: Color::Rgb(251, 73, 52),       // Red
         }
     }
 
@@ -162,6 +254,17 @@ impl Theme {
             status_message: Color::Rgb(235, 203, 139), // Aurora Yellow
             popup_bg: Color::Rgb(46, 52, 64),     // Polar Night 0
             popup_text: Color::Rgb(191, 97, 106), // Aurora Red
+            // Nord icon colors
+            icon_rust: Color::Rgb(208, 135, 112), // Aurora Orange
+            icon_maven: Color::Rgb(191, 97, 106), // Aurora Red
+            icon_flutter: Color::Rgb(136, 192, 208), // Frost Cyan
+            icon_go: Color::Rgb(136, 192, 208),   // Frost Cyan
+            icon_python: Color::Rgb(235, 203, 139), // Aurora Yellow
+            icon_mise: Color::Rgb(208, 135, 112), // Aurora Orange
+            icon_worktree: Color::Rgb(163, 190, 140), // Aurora Green
+            icon_worktree_lock: Color::Rgb(216, 222, 233), // Snow Storm
+            icon_gitmodules: Color::Rgb(180, 142, 173), // Aurora Purple
+            icon_git: Color::Rgb(191, 97, 106),   // Aurora Red
         }
     }
 
@@ -187,11 +290,23 @@ impl Theme {
             status_message: Color::Rgb(224, 175, 104),    // Yellow
             popup_bg: Color::Rgb(26, 27, 38),             // Bg
             popup_text: Color::Rgb(247, 118, 142),        // Red
+            // Tokyo Night icon colors
+            icon_rust: Color::Rgb(255, 158, 100),     // Orange
+            icon_maven: Color::Rgb(247, 118, 142),    // Red
+            icon_flutter: Color::Rgb(125, 207, 255),  // Cyan
+            icon_go: Color::Rgb(125, 207, 255),       // Cyan
+            icon_python: Color::Rgb(224, 175, 104),   // Yellow
+            icon_mise: Color::Rgb(255, 158, 100),     // Orange
+            icon_worktree: Color::Rgb(158, 206, 106), // Green
+            icon_worktree_lock: Color::Rgb(169, 177, 214), // Fg
+            icon_gitmodules: Color::Rgb(187, 154, 247), // Purple
+            icon_git: Color::Rgb(247, 118, 142),      // Red
         }
     }
 
     pub fn all() -> Vec<Theme> {
         vec![
+            Theme::default_theme(),
             Theme::catppuccin_mocha(),
             Theme::dracula(),
             Theme::jetbrains_darcula(),
