@@ -698,10 +698,10 @@ pub fn run_app(
             }
         })?;
 
-        if event::poll(std::time::Duration::from_millis(50))?
-            && let Event::Key(key) = event::read()?
-            && key.is_press()
-        {
+        if let Event::Key(key) = event::read()? {
+            if !key.is_press() {
+                continue;
+            }
             match app.mode {
                 AppMode::Normal => match key.code {
                     KeyCode::Char(c) => {
