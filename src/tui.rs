@@ -399,16 +399,16 @@ fn draw_about_popup(f: &mut Frame, theme: &Theme) {
         Line::from(""),
         Line::from(Span::styled(
             "try-rs.org",
-            Style::default().fg(theme.search_box),
+            Style::default().fg(theme.search_title),
         )),
         Line::from(""),
         Line::from(Span::styled(
             "github.com/tassiovirginio/try-rs",
-            Style::default().fg(theme.search_box),
+            Style::default().fg(theme.search_title),
         )),
         Line::from(""),
         Line::from(vec![
-            Span::styled("📜 License: ", Style::default().fg(theme.help_text)),
+            Span::styled("📜 License: ", Style::default().fg(theme.helpers_colors)),
             Span::styled(
                 "MIT",
                 Style::default()
@@ -419,7 +419,7 @@ fn draw_about_popup(f: &mut Frame, theme: &Theme) {
         Line::from(""),
         Line::from(Span::styled(
             "Press Esc to close",
-            Style::default().fg(theme.help_text),
+            Style::default().fg(theme.helpers_colors),
         )),
     ];
 
@@ -456,8 +456,16 @@ pub fn run_app(
                 .split(chunks[0]);
 
             let search_text = Paragraph::new(app.query.clone())
-                .style(Style::default().fg(app.theme.search_box))
-                .block(Block::default().borders(Borders::ALL).title(" Search/New "));
+                .style(Style::default().fg(app.theme.search_title))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title(Span::styled(
+                            " Search/New ",
+                            Style::default().fg(app.theme.search_title),
+                        ))
+                        .border_style(Style::default().fg(app.theme.search_border)),
+                );
             f.render_widget(search_text, search_chunks[0]);
 
             let free_space = app
@@ -467,10 +475,18 @@ pub fn run_app(
 
             let memory_info = Paragraph::new(Line::from(vec![
                 Span::styled("󰋊 ", Style::default().fg(app.theme.title_rs)),
-                Span::styled("Free: ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Free: ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled(free_space, Style::default().fg(app.theme.status_message)),
             ]))
-            .block(Block::default().borders(Borders::ALL).title(" Disk "))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(Span::styled(
+                        " Disk ",
+                        Style::default().fg(app.theme.disk_title),
+                    ))
+                    .border_style(Style::default().fg(app.theme.disk_border)),
+            )
             .alignment(Alignment::Center);
             f.render_widget(memory_info, search_chunks[1]);
 
@@ -590,7 +606,15 @@ pub fn run_app(
                 .collect();
 
             let list = List::new(items)
-                .block(Block::default().borders(Borders::ALL).title(" Folders "))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title(Span::styled(
+                            " Folders ",
+                            Style::default().fg(app.theme.folder_title),
+                        ))
+                        .border_style(Style::default().fg(app.theme.folder_border)),
+                )
                 .highlight_style(
                     Style::default()
                         .bg(app.theme.list_highlight_bg)
@@ -635,36 +659,52 @@ pub fn run_app(
                     )));
                 }
 
-                let preview = Paragraph::new(preview_lines)
-                    .block(Block::default().borders(Borders::ALL).title(" Preview "));
+                let preview = Paragraph::new(preview_lines).block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title(Span::styled(
+                            " Preview ",
+                            Style::default().fg(app.theme.preview_title),
+                        ))
+                        .border_style(Style::default().fg(app.theme.preview_border)),
+                );
                 f.render_widget(preview, right_chunks[0]);
             } else {
-                let preview = Block::default().borders(Borders::ALL).title(" Preview ");
+                let preview = Block::default()
+                    .borders(Borders::ALL)
+                    .title(Span::styled(
+                        " Preview ",
+                        Style::default().fg(app.theme.preview_title),
+                    ))
+                    .border_style(Style::default().fg(app.theme.preview_border));
                 f.render_widget(preview, right_chunks[0]);
             }
 
             // Legenda de ícones
             let legend_lines = vec![Line::from(vec![
                 Span::styled(" ", Style::default().fg(Color::Rgb(230, 100, 50))),
-                Span::styled("Rust ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Rust ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled(" ", Style::default().fg(Color::Rgb(255, 150, 50))),
-                Span::styled("Maven ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Maven ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled(" ", Style::default().fg(Color::Rgb(2, 123, 222))),
-                Span::styled("Flutter ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Flutter ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled(" ", Style::default().fg(Color::Rgb(0, 173, 216))),
-                Span::styled("Go ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Go ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled(" ", Style::default().fg(Color::Yellow)),
-                Span::styled("Python ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Python ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled("󰬔 ", Style::default().fg(Color::Rgb(250, 179, 135))),
-                Span::styled("Mise ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Mise ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled(" ", Style::default()),
-                Span::styled("Locked ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Locked ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled("󰙅 ", Style::default().fg(Color::Rgb(100, 180, 100))),
-                Span::styled("Git-Worktree ", Style::default().fg(app.theme.help_text)),
+                Span::styled(
+                    "Git-Worktree ",
+                    Style::default().fg(app.theme.helpers_colors),
+                ),
                 Span::styled(" ", Style::default().fg(Color::Rgb(180, 130, 200))),
-                Span::styled("Git-Submod ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Git-Submod ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled(" ", Style::default().fg(Color::Rgb(240, 80, 50))),
-                Span::styled("Git ", Style::default().fg(app.theme.help_text)),
+                Span::styled("Git ", Style::default().fg(app.theme.helpers_colors)),
             ])];
 
             let legend = Paragraph::new(legend_lines)
@@ -700,7 +740,7 @@ pub fn run_app(
             };
 
             let help_message = Paragraph::new(help_text)
-                .style(Style::default().fg(app.theme.help_text))
+                .style(Style::default().fg(app.theme.helpers_colors))
                 .alignment(Alignment::Center);
 
             f.render_widget(help_message, chunks[2]);
