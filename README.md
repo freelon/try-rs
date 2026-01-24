@@ -69,6 +69,23 @@ cargo install try-rs
 yay -S try-rs-bin
 ```
 
+### Ubuntu/Debian (.deb)
+
+- Download the latest `.deb` for your architecture (amd64/arm64) from the Releases page and install it:
+
+```bash
+# Replace X.Y.Z with the latest version and choose amd64 or arm64
+wget https://github.com/tassiovirginio/try-rs/releases/download/vX.Y.Z/try-rs_X.Y.Z_amd64.deb
+sudo apt install ./try-rs_X.Y.Z_amd64.deb
+```
+
+- Alternatively, browse all assets at: https://github.com/tassiovirginio/try-rs/releases
+
+### Windows (Releases)
+
+- Download the Windows build from the Releases downloads: https://github.com/tassiovirginio/try-rs/releases/download/
+- Unzip or place the binary somewhere on your `PATH` (e.g., add the folder to the System Environment `Path`) so you can run `try-rs` from any terminal (PowerShell, Command Prompt).
+
 ### Nix Install (flakes)
 
 ```bash
