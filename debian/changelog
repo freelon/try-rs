@@ -1,3 +1,10 @@
+try-rs (0.1.49-1) noble; urgency=medium
+
+  * add news themes
+  * updated how save the themes
+  * improvement in the selection of themes
+
+
 try-rs (0.1.48-1) noble; urgency=medium
 
   * fix: use theme colors for Legends box and auto-clear status messages
