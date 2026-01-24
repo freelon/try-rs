@@ -32,8 +32,10 @@ fn parse_dot_git(dot_git: &Path) -> std::io::Result<PathBuf> {
     Ok(first_line(&std::fs::read(dot_git)?).into())
 }
 
+#[cfg(unix)]
 pub fn first_line(bytes: &[u8]) -> OsString {
-    <std::ffi::OsString as std::os::unix::ffi::OsStringExt>::from_vec(
+    use std::os::unix::ffi::OsStringExt;
+    OsString::from_vec(
         bytes
             .iter()
             .copied()
@@ -42,6 +44,18 @@ pub fn first_line(bytes: &[u8]) -> OsString {
             .take_while(|&b| b != b'\n')
             .collect::<Vec<_>>(),
     )
+}
+
+#[cfg(not(unix))]
+pub fn first_line(bytes: &[u8]) -> OsString {
+    let vec: Vec<u8> = bytes
+        .iter()
+        .copied()
+        .skip_while(|&b| b != b' ')
+        .skip(1)
+        .take_while(|&b| b != b'\n')
+        .collect();
+    OsString::from(String::from_utf8_lossy(&vec).to_string())
 }
 
 pub fn remove_git_worktree(path_to_remove: &Path) -> std::io::Result<std::process::Output> {
