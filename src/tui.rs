@@ -782,6 +782,8 @@ pub fn run_app(
             if !key.is_press() {
                 continue;
             }
+            // Clear status message on any key press so it disappears after one redraw
+            app.status_message = None;
             match app.mode {
                 AppMode::Normal => match key.code {
                     KeyCode::Char(c) => {
@@ -830,7 +832,6 @@ pub fn run_app(
                             || key.modifiers == event::KeyModifiers::SHIFT
                         {
                             app.query.push(c);
-                            app.status_message = None;
                             app.update_search();
                         }
                     }
