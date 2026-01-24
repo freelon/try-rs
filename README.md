@@ -127,9 +127,9 @@ The configuration file is stored in a platform-specific directory:
 
 | Platform    | Value                                 | Example                                                    |
 | :---------- | :------------------------------------ | :--------------------------------------------------------- |
-| **Linux**   | `$XDG_CONFIG_HOME` or `$HOME/.config` | `/home/tassiovirginio/.config/try-rs`                      |
-| **macOS**   | `$HOME/Library/Application Support`   | `/Users/tassiovirginio/Library/Application Support/try-rs` |
-| **Windows** | `{FOLDERID_RoamingAppData}`           | `C:\Users\tassiovirginio\AppData\Roaming\try-rs`           |
+| **Linux**   | `$XDG_CONFIG_HOME` or `$HOME/.config` | `/home/tassio/.config/try-rs`                      |
+| **macOS**   | `$HOME/Library/Application Support`   | `/Users/tassio/Library/Application Support/try-rs` |
+| **Windows** | `{FOLDERID_RoamingAppData}`           | `C:\Users\tassio\AppData\Roaming\try-rs`           |
 
 By default, experiments are stored in `~/work/tries`. You can customize the path and the UI colors (themes). To change this, create `config.toml` in the directory shown above:
 
@@ -139,16 +139,40 @@ tries_path = "~/Development/playground"
 editor = "code" # Optional: code, nvim, hx, etc.
 
 [colors]
+# UI Colors
 title_try = "Magenta"
 title_rs = "White"
-search_box = "Green"
+search_title = "Green"
+search_border = "Gray"
+folder_title = "Yellow"
+folder_border = "Gray"
+disk_title = "Orange"
+disk_border = "Gray"
+preview_title = "Blue"
+preview_border = "Gray"
+legends_title = "Purple"
+legends_border = "Gray"
 list_date = "Blue"
 list_highlight_bg = "Magenta"
 list_highlight_fg = "Black"
-help_text = "DarkGray"
+helpers_colors = "DarkGray"
 status_message = "Yellow"
 popup_bg = "DarkGray"
 popup_text = "LightRed"
+
+# Icons Colors
+icon_rust = "Red"
+icon_maven = "Orange"
+icon_flutter = "Cyan"
+icon_go = "Cyan"
+icon_python = "Yellow"
+icon_mise = "Orange"
+icon_worktree = "Green"
+icon_worktree_lock = "Gray"
+icon_gitmodules = "Purple"
+icon_git = "Red"
+icon_folder = "Yellow"
+icon_file = "Gray"
 ```
 
 ### 3. Environment Variables
@@ -192,12 +216,18 @@ Simply type try-rs (or your alias) in your terminal.
 
 You can switch between themes at runtime by pressing `Ctrl+T`. The following themes are available:
 
-- **Catppuccin Mocha** (Default)
+- **Default**
+- **Catppuccin Mocha**
 - **Dracula**
 - **JetBrains Darcula**
 - **Gruvbox Dark**
 - **Nord**
 - **Tokyo Night**
+- **One Dark Pro**
+- **Everforest**
+- **SynthWave '84**
+- **OLED True Black**
+- **Silver Gray**
 
 You can also define a custom theme in your `config.toml`.
 
@@ -205,17 +235,17 @@ You can also define a custom theme in your `config.toml`.
 
 You can also bypass the UI:
 
-| Command                                        | Description                                                      |
-| ---------------------------------------------- | ---------------------------------------------------------------- |
-| `try-rs`                                       | Opens the TUI                                                    |
-| `try-rs <name>`                                | Create (or jump to) a named experiment                           |
-| `try-rs <https://github.com/user/repo>`        | Clones a repository into a dated folder                          |
-| `try-rs <https://github.com/user/repo> <name>` | Clones a repository into a specific folder name                  |
-| `try-rs -s <url>`                              | Shallow clone (depth 1)                                          |
-| `try-rs -w <name>`                             | Create a git worktree from current repository                    |
-| `try-rs --setup <shell>`                       | setup shell integration (fish, zsh, bash, power-shell, nu-shell) |
-| `try-rs --version`                             | Show application version                                         |
-| `try-rs --help`                                | Show help message                                                |
+| Command                                        | Description                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------------- |
+| `try-rs`                                       | Opens the TUI                                                       |
+| `try-rs <name>`                                | Create (or jump to) a named experiment                              |
+| `try-rs <https://github.com/user/repo>`        | Clones a repository into a dated folder                             |
+| `try-rs <https://github.com/user/repo> <name>` | Clones a repository into a specific folder name (destination)       |
+| `try-rs -s <url>` / `try-rs --shallow-clone`   | Shallow clone (--depth 1) when cloning repositories                 |
+| `try-rs -w <name>` / `try-rs --worktree`       | Create a git worktree from current repository (must be inside repo) |
+| `try-rs --setup <shell>`                       | Setup shell integration (fish, zsh, bash, nu-shell, power-shell)    |
+| `try-rs --version`                             | Show application version                                            |
+| `try-rs --help`                                | Show help message                                                   |
 
 ## Inspiration
 
