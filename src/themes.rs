@@ -510,10 +510,163 @@ impl Theme {
         }
     }
 
+    pub fn black_and_white() -> Self {
+        Self {
+            name: "Black & White".to_string(),
+            title_try: Color::White,
+            title_rs: Color::White,
+            search_title: Color::White,
+            search_border: Color::Gray,
+            folder_title: Color::White,
+            folder_border: Color::Gray,
+            disk_title: Color::White,
+            disk_border: Color::Gray,
+            preview_title: Color::White,
+            preview_border: Color::Gray,
+            legends_title: Color::White,
+            legends_border: Color::Gray,
+            list_date: Color::Gray,
+            list_highlight_bg: Color::White,
+            list_highlight_fg: Color::Black,
+            helpers_colors: Color::Gray,
+            status_message: Color::White,
+            popup_bg: Color::Black,
+            popup_text: Color::White,
+            // Black & White icon colors
+            icon_rust: Color::White,
+            icon_maven: Color::White,
+            icon_flutter: Color::White,
+            icon_go: Color::White,
+            icon_python: Color::White,
+            icon_mise: Color::Gray,
+            icon_worktree: Color::White,
+            icon_worktree_lock: Color::Gray,
+            icon_gitmodules: Color::Gray,
+            icon_git: Color::White,
+            icon_folder: Color::White,
+            icon_file: Color::Gray,
+        }
+    }
+
+    pub fn matrix() -> Self {
+        Self {
+            name: "Matrix".to_string(),
+            title_try: Color::Rgb(0, 255, 65),            // Matrix green
+            title_rs: Color::Rgb(0, 200, 50),             // Darker green
+            search_title: Color::Rgb(0, 255, 65),         // Matrix green
+            search_border: Color::Rgb(0, 100, 30),        // Dark green
+            folder_title: Color::Rgb(0, 255, 65),         // Matrix green
+            folder_border: Color::Rgb(0, 100, 30),        // Dark green
+            disk_title: Color::Rgb(0, 255, 65),           // Matrix green
+            disk_border: Color::Rgb(0, 100, 30),          // Dark green
+            preview_title: Color::Rgb(0, 255, 65),        // Matrix green
+            preview_border: Color::Rgb(0, 100, 30),       // Dark green
+            legends_title: Color::Rgb(0, 200, 50),        // Darker green
+            legends_border: Color::Rgb(0, 100, 30),       // Dark green
+            list_date: Color::Rgb(0, 150, 40),            // Muted green
+            list_highlight_bg: Color::Rgb(0, 80, 25),     // Selection green
+            list_highlight_fg: Color::Rgb(0, 255, 65),    // Bright green
+            helpers_colors: Color::Rgb(0, 150, 40),       // Muted green
+            status_message: Color::Rgb(0, 255, 65),       // Matrix green
+            popup_bg: Color::Rgb(0, 10, 0),               // Almost black with green tint
+            popup_text: Color::Rgb(0, 255, 65),           // Matrix green
+            // Matrix icon colors (all shades of green)
+            icon_rust: Color::Rgb(0, 255, 65),
+            icon_maven: Color::Rgb(0, 220, 55),
+            icon_flutter: Color::Rgb(0, 200, 50),
+            icon_go: Color::Rgb(0, 180, 45),
+            icon_python: Color::Rgb(0, 255, 65),
+            icon_mise: Color::Rgb(0, 150, 40),
+            icon_worktree: Color::Rgb(0, 200, 50),
+            icon_worktree_lock: Color::Rgb(0, 120, 35),
+            icon_gitmodules: Color::Rgb(0, 180, 45),
+            icon_git: Color::Rgb(0, 255, 65),
+            icon_folder: Color::Rgb(0, 220, 55),
+            icon_file: Color::Rgb(0, 150, 40),
+        }
+    }
+
+    pub fn tron() -> Self {
+        Self {
+            name: "Tron".to_string(),
+            title_try: Color::Rgb(0, 255, 255),           // Cyan neon
+            title_rs: Color::Rgb(255, 150, 0),            // Orange accent
+            search_title: Color::Rgb(0, 255, 255),        // Cyan neon
+            search_border: Color::Rgb(0, 150, 180),       // Darker cyan
+            folder_title: Color::Rgb(0, 255, 255),        // Cyan neon
+            folder_border: Color::Rgb(0, 150, 180),       // Darker cyan
+            disk_title: Color::Rgb(255, 150, 0),          // Orange accent
+            disk_border: Color::Rgb(0, 150, 180),         // Darker cyan
+            preview_title: Color::Rgb(0, 255, 255),       // Cyan neon
+            preview_border: Color::Rgb(0, 150, 180),      // Darker cyan
+            legends_title: Color::Rgb(0, 200, 220),       // Light cyan
+            legends_border: Color::Rgb(0, 150, 180),      // Darker cyan
+            list_date: Color::Rgb(0, 180, 200),           // Muted cyan
+            list_highlight_bg: Color::Rgb(0, 80, 100),    // Selection
+            list_highlight_fg: Color::Rgb(0, 255, 255),   // Cyan neon
+            helpers_colors: Color::Rgb(0, 150, 180),      // Darker cyan
+            status_message: Color::Rgb(255, 150, 0),      // Orange accent
+            popup_bg: Color::Rgb(0, 10, 15),              // Almost black with blue tint
+            popup_text: Color::Rgb(0, 255, 255),          // Cyan neon
+            // Tron icon colors
+            icon_rust: Color::Rgb(255, 150, 0),           // Orange
+            icon_maven: Color::Rgb(255, 100, 0),          // Dark orange
+            icon_flutter: Color::Rgb(0, 255, 255),        // Cyan
+            icon_go: Color::Rgb(0, 220, 230),             // Light cyan
+            icon_python: Color::Rgb(255, 200, 0),         // Yellow-orange
+            icon_mise: Color::Rgb(255, 150, 0),           // Orange
+            icon_worktree: Color::Rgb(0, 255, 255),       // Cyan
+            icon_worktree_lock: Color::Rgb(0, 150, 180),  // Darker cyan
+            icon_gitmodules: Color::Rgb(0, 200, 220),     // Light cyan
+            icon_git: Color::Rgb(255, 150, 0),            // Orange
+            icon_folder: Color::Rgb(0, 255, 255),         // Cyan
+            icon_file: Color::Rgb(0, 180, 200),           // Muted cyan
+        }
+    }
+
+    pub fn catppuccin_macchiato() -> Self {
+        Self {
+            name: "Catppuccin Macchiato".to_string(),
+            title_try: Color::Rgb(138, 173, 244),         // Blue
+            title_rs: Color::Rgb(238, 153, 160),          // Maroon
+            search_title: Color::Rgb(245, 169, 127),      // Peach
+            search_border: Color::Rgb(147, 154, 183),     // Overlay1
+            folder_title: Color::Rgb(166, 218, 149),      // Green
+            folder_border: Color::Rgb(147, 154, 183),     // Overlay1
+            disk_title: Color::Rgb(238, 212, 159),        // Yellow
+            disk_border: Color::Rgb(147, 154, 183),       // Overlay1
+            preview_title: Color::Rgb(138, 173, 244),     // Blue
+            preview_border: Color::Rgb(147, 154, 183),    // Overlay1
+            legends_title: Color::Rgb(198, 160, 246),     // Mauve
+            legends_border: Color::Rgb(147, 154, 183),    // Overlay1
+            list_date: Color::Rgb(165, 173, 203),         // Subtext0
+            list_highlight_bg: Color::Rgb(91, 96, 120),   // Surface2
+            list_highlight_fg: Color::Rgb(202, 211, 245), // Text
+            helpers_colors: Color::Rgb(147, 154, 183),    // Overlay1
+            status_message: Color::Rgb(238, 212, 159),    // Yellow
+            popup_bg: Color::Rgb(36, 39, 58),             // Base
+            popup_text: Color::Rgb(237, 135, 150),        // Red
+            // Catppuccin Macchiato icon colors
+            icon_rust: Color::Rgb(245, 169, 127),     // Peach
+            icon_maven: Color::Rgb(237, 135, 150),    // Red
+            icon_flutter: Color::Rgb(138, 173, 244),  // Blue
+            icon_go: Color::Rgb(139, 213, 202),       // Teal
+            icon_python: Color::Rgb(238, 212, 159),   // Yellow
+            icon_mise: Color::Rgb(245, 169, 127),     // Peach
+            icon_worktree: Color::Rgb(166, 218, 149), // Green
+            icon_worktree_lock: Color::Rgb(165, 173, 203), // Subtext0
+            icon_gitmodules: Color::Rgb(198, 160, 246), // Mauve
+            icon_git: Color::Rgb(237, 135, 150),      // Red
+            icon_folder: Color::Rgb(238, 212, 159),   // Yellow
+            icon_file: Color::Rgb(165, 173, 203),     // Subtext0
+        }
+    }
+
     pub fn all() -> Vec<Theme> {
         vec![
             Theme::default_theme(),
             Theme::catppuccin_mocha(),
+            Theme::catppuccin_macchiato(),
             Theme::dracula(),
             Theme::jetbrains_darcula(),
             Theme::gruvbox_dark(),
@@ -524,6 +677,9 @@ impl Theme {
             Theme::synthwave_84(),
             Theme::oled_true_black(),
             Theme::silver_gray(),
+            Theme::black_and_white(),
+            Theme::matrix(),
+            Theme::tron(),
         ]
     }
 }

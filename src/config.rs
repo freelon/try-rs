@@ -47,6 +47,7 @@ pub struct ThemeConfig {
 #[derive(Deserialize, Serialize)]
 pub struct Config {
     pub tries_path: Option<String>,
+    pub theme: Option<String>,
     pub colors: Option<ThemeConfig>,
     pub editor: Option<String>,
 }
@@ -155,7 +156,13 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
         if let Some(editor) = config.editor {
             editor_cmd = Some(editor);
         }
-        if let Some(colors) = config.colors {
+        // First try to load theme by name
+        if let Some(theme_name) = config.theme {
+            if let Some(found_theme) = Theme::all().into_iter().find(|t| t.name == theme_name) {
+                theme = found_theme;
+            }
+        } else if let Some(colors) = config.colors {
+            // Fallback to custom colors for backward compatibility
             let parse = |opt: Option<String>, def: Color| -> Color {
                 opt.and_then(|s| Color::from_str(&s).ok()).unwrap_or(def)
             };
@@ -209,73 +216,16 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
     )
 }
 
-fn color_to_string(c: Color) -> String {
-    match c {
-        Color::Reset => "Reset".to_string(),
-        Color::Black => "Black".to_string(),
-        Color::Red => "Red".to_string(),
-        Color::Green => "Green".to_string(),
-        Color::Yellow => "Yellow".to_string(),
-        Color::Blue => "Blue".to_string(),
-        Color::Magenta => "Magenta".to_string(),
-        Color::Cyan => "Cyan".to_string(),
-        Color::Gray => "Gray".to_string(),
-        Color::DarkGray => "DarkGray".to_string(),
-        Color::LightRed => "LightRed".to_string(),
-        Color::LightGreen => "LightGreen".to_string(),
-        Color::LightYellow => "LightYellow".to_string(),
-        Color::LightBlue => "LightBlue".to_string(),
-        Color::LightMagenta => "LightMagenta".to_string(),
-        Color::LightCyan => "LightCyan".to_string(),
-        Color::White => "White".to_string(),
-        Color::Rgb(r, g, b) => format!("#{r:02x}{g:02x}{b:02x}"),
-        Color::Indexed(i) => format!("{i}"),
-    }
-}
-
 pub fn save_config(
     path: &Path,
     theme: &Theme,
     tries_path: &Path,
     editor: &Option<String>,
 ) -> std::io::Result<()> {
-    let theme_config = ThemeConfig {
-        title_try: Some(color_to_string(theme.title_try)),
-        title_rs: Some(color_to_string(theme.title_rs)),
-        search_title: Some(color_to_string(theme.search_title)),
-        search_border: Some(color_to_string(theme.search_border)),
-        folder_title: Some(color_to_string(theme.folder_title)),
-        folder_border: Some(color_to_string(theme.folder_border)),
-        disk_title: Some(color_to_string(theme.disk_title)),
-        disk_border: Some(color_to_string(theme.disk_border)),
-        preview_title: Some(color_to_string(theme.preview_title)),
-        preview_border: Some(color_to_string(theme.preview_border)),
-        legends_title: Some(color_to_string(theme.legends_title)),
-        legends_border: Some(color_to_string(theme.legends_border)),
-        list_date: Some(color_to_string(theme.list_date)),
-        list_highlight_bg: Some(color_to_string(theme.list_highlight_bg)),
-        list_highlight_fg: Some(color_to_string(theme.list_highlight_fg)),
-        helpers_colors: Some(color_to_string(theme.helpers_colors)),
-        status_message: Some(color_to_string(theme.status_message)),
-        popup_bg: Some(color_to_string(theme.popup_bg)),
-        popup_text: Some(color_to_string(theme.popup_text)),
-        icon_rust: Some(color_to_string(theme.icon_rust)),
-        icon_maven: Some(color_to_string(theme.icon_maven)),
-        icon_flutter: Some(color_to_string(theme.icon_flutter)),
-        icon_go: Some(color_to_string(theme.icon_go)),
-        icon_python: Some(color_to_string(theme.icon_python)),
-        icon_mise: Some(color_to_string(theme.icon_mise)),
-        icon_worktree: Some(color_to_string(theme.icon_worktree)),
-        icon_worktree_lock: Some(color_to_string(theme.icon_worktree_lock)),
-        icon_gitmodules: Some(color_to_string(theme.icon_gitmodules)),
-        icon_git: Some(color_to_string(theme.icon_git)),
-        icon_folder: Some(color_to_string(theme.icon_folder)),
-        icon_file: Some(color_to_string(theme.icon_file)),
-    };
-
     let config = Config {
-        tries_path: Some(tries_path.to_string_lossy().to_string()), // Persist current path
-        colors: Some(theme_config),
+        tries_path: Some(tries_path.to_string_lossy().to_string()),
+        theme: Some(theme.name.clone()),
+        colors: None,
         editor: editor.clone(),
     };
 
