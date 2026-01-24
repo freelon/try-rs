@@ -62,6 +62,7 @@ pub struct App {
 
     pub available_themes: Vec<Theme>,
     pub theme_list_state: ListState,
+    pub original_theme: Option<Theme>,
 
     pub config_path: Option<PathBuf>,
     pub config_location_state: ListState,
@@ -136,6 +137,7 @@ impl App {
             wants_editor: false,
             available_themes: themes,
             theme_list_state: theme_state,
+            original_theme: None,
             config_path,
             config_location_state: ListState::default(),
             cached_free_space_mb: utils::get_free_disk_space_mb(&path),
@@ -818,6 +820,14 @@ pub fn run_app(
                                     Some("No editor configured in config.toml".to_string());
                             }
                         } else if c == 't' && key.modifiers.contains(event::KeyModifiers::CONTROL) {
+                            // Save current theme before opening selector
+                            app.original_theme = Some(app.theme.clone());
+                            // Find and select current theme in the list
+                            let current_idx = app.available_themes
+                                .iter()
+                                .position(|t| t.name == app.theme.name)
+                                .unwrap_or(0);
+                            app.theme_list_state.select(Some(current_idx));
                             app.mode = AppMode::ThemeSelect;
                         } else if c == 'a' && key.modifiers.contains(event::KeyModifiers::CONTROL) {
                             app.mode = AppMode::About;
@@ -885,9 +895,17 @@ pub fn run_app(
 
                 AppMode::ThemeSelect => match key.code {
                     KeyCode::Esc => {
+                        // Restore original theme
+                        if let Some(original) = app.original_theme.take() {
+                            app.theme = original;
+                        }
                         app.mode = AppMode::Normal;
                     }
                     KeyCode::Char('c') if key.modifiers.contains(event::KeyModifiers::CONTROL) => {
+                        // Restore original theme
+                        if let Some(original) = app.original_theme.take() {
+                            app.theme = original;
+                        }
                         app.mode = AppMode::Normal;
                     }
                     KeyCode::Up | KeyCode::Char('k' | 'p') => {
@@ -902,6 +920,10 @@ pub fn run_app(
                             None => 0,
                         };
                         app.theme_list_state.select(Some(i));
+                        // Apply theme preview
+                        if let Some(theme) = app.available_themes.get(i) {
+                            app.theme = theme.clone();
+                        }
                     }
                     KeyCode::Down | KeyCode::Char('j' | 'n') => {
                         let i = match app.theme_list_state.selected() {
@@ -915,8 +937,14 @@ pub fn run_app(
                             None => 0,
                         };
                         app.theme_list_state.select(Some(i));
+                        // Apply theme preview
+                        if let Some(theme) = app.available_themes.get(i) {
+                            app.theme = theme.clone();
+                        }
                     }
                     KeyCode::Enter => {
+                        // Clear original theme (we're confirming the new one)
+                        app.original_theme = None;
                         if let Some(i) = app.theme_list_state.selected() {
                             if let Some(theme) = app.available_themes.get(i) {
                                 app.theme = theme.clone();
