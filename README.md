@@ -131,12 +131,45 @@ The configuration file is stored in a platform-specific directory:
 | **macOS**   | `$HOME/Library/Application Support`   | `/Users/tassio/Library/Application Support/try-rs` |
 | **Windows** | `{FOLDERID_RoamingAppData}`           | `C:\Users\tassio\AppData\Roaming\try-rs`           |
 
-By default, experiments are stored in `~/work/tries`. You can customize the path and the UI colors (themes). To change this, create `config.toml` in the directory shown above:
+By default, experiments are stored in `~/work/tries`. You can customize the path, choose a theme, and configure the editor. To change this, create `config.toml` in the directory shown above:
 
 ```toml
 # config.toml
 tries_path = "~/Development/playground"
 editor = "code" # Optional: code, nvim, hx, etc.
+
+# Theme configuration (choose one of the available themes)
+theme = "Catppuccin Mocha"
+```
+
+**Available Themes:**
+
+You can use any of these theme names in your configuration:
+- `"Default"`
+- `"Catppuccin Mocha"`
+- `"Catppuccin Macchiato"`
+- `"Dracula"`
+- `"JetBrains Darcula"`
+- `"Gruvbox Dark"`
+- `"Nord"`
+- `"Tokyo Night"`
+- `"One Dark Pro"`
+- `"Everforest"`
+- `"SynthWave '84"`
+- `"OLED True Black"`
+- `"Silver Gray"`
+- `"Black & White"`
+- `"Matrix"`
+- `"Tron"`
+
+**Custom Colors (Optional):**
+
+If you want to create a fully custom theme, you can define individual colors instead of using the `theme` option:
+
+```toml
+# config.toml
+tries_path = "~/Development/playground"
+editor = "code"
 
 [colors]
 # UI Colors
@@ -174,6 +207,12 @@ icon_git = "Red"
 icon_folder = "Yellow"
 icon_file = "Gray"
 ```
+
+**Available Color Names:**
+
+You can use the following color names in your custom color configuration:
+- Basic colors: `Black`, `Red`, `Green`, `Yellow`, `Blue`, `Magenta`, `Cyan`, `Gray`, `DarkGray`, `LightRed`, `LightGreen`, `LightYellow`, `LightBlue`, `LightMagenta`, `LightCyan`, `White`
+- RGB colors: You can also use RGB values like `"#FF5733"` or as a table: `{ r = 255, g = 87, b = 51 }`
 
 ### 3. Environment Variables
 
@@ -218,6 +257,7 @@ You can switch between themes at runtime by pressing `Ctrl+T`. The following the
 
 - **Default**
 - **Catppuccin Mocha**
+- **Catppuccin Macchiato**
 - **Dracula**
 - **JetBrains Darcula**
 - **Gruvbox Dark**
@@ -228,6 +268,9 @@ You can switch between themes at runtime by pressing `Ctrl+T`. The following the
 - **SynthWave '84**
 - **OLED True Black**
 - **Silver Gray**
+- **Black & White**
+- **Matrix**
+- **Tron**
 
 You can also define a custom theme in your `config.toml`.
 
