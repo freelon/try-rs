@@ -69,14 +69,25 @@ cargo install try-rs
 yay -S try-rs-bin
 ```
 
-### Ubuntu/Debian (.deb)
+### Ubuntu/Debian (APT Repository)
+
+```bash
+# Add the repository
+echo "deb [trusted=yes] https://tassiovirginio.github.io/try-rs stable main" | sudo tee /etc/apt/sources.list.d/try-rs.list
+
+# Update and install
+sudo apt update
+sudo apt install try-rs
+```
+
+### Ubuntu/Debian (.deb manual)
 
 - Download the latest `.deb` for your architecture (amd64/arm64) from the Releases page and install it:
 
 ```bash
 # Replace X.Y.Z with the latest version and choose amd64 or arm64
-wget https://github.com/tassiovirginio/try-rs/releases/download/vX.Y.Z/try-rs_X.Y.Z_amd64.deb
-sudo apt install ./try-rs_X.Y.Z_amd64.deb
+wget https://github.com/tassiovirginio/try-rs/releases/download/vX.Y.Z/try-rs_X.Y.Z-1_amd64.deb
+sudo apt install ./try-rs_X.Y.Z-1_amd64.deb
 ```
 
 - Alternatively, browse all assets at: https://github.com/tassiovirginio/try-rs/releases
