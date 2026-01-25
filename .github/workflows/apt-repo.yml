@@ -69,13 +69,12 @@ jobs:
             wget https://github.com/${{ github.repository }}/releases/download/v${VERSION}/try-rs_${VERSION}-1_amd64.deb -O apt-repo/pool/main/try-rs_${VERSION}-1_amd64.deb
           fi
           
-          # Generate Packages file
+          # Generate Packages and Packages.gz  
           cd apt-repo
-          apt-ftparchive packages pool/main > dists/stable/main/binary-amd64/Packages
-          cd ..
+          dpkg-scanpackages --multiversion . > Packages
+          gzip -k -f Packages
           
           # Generate Release file
-          cd apt-repo
           apt-ftparchive release . > Release
           cd ..
 
