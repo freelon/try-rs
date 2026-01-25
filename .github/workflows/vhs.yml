@@ -73,7 +73,7 @@ jobs:
           git config user.name "Tássio Virginio"
           git config user.email "tassio.virginio@ufba.br"
           
-          git add sample.gif
+          git add try-rs.gif
           
           # Verifica se o GIF mudou antes de tentar commitar
           if git diff --staged --quiet; then
