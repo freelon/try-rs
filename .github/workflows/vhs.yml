@@ -75,11 +75,7 @@ jobs:
           
           git add try-rs.gif
           
-          # Verifica se o GIF mudou antes de tentar commitar
-          if git diff --staged --quiet; then
-            echo "⚠️ O GIF gerado é idêntico ao atual. Nada para commitar."
-          else
-            git commit -m "docs: update demo gif [skip ci]"
-            git push
-            echo "✅ GIF atualizado no repositório com sucesso!"
-          fi
+          git commit -m "docs: update demo gif [skip ci]"
+          git push
+          echo "✅ GIF atualizado no repositório com sucesso!"
+          
