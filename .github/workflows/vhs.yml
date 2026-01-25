@@ -49,11 +49,12 @@ jobs:
         # Define explicitamente que este passo deve ser interpretado pelo Fish
         shell: fish {0}
         run: |
-          # Debug: mostra diretório atual
-          echo "Diretório de trabalho: $PWD"
+          # Salva o diretório de trabalho original
+          set -l WORK_DIR $PWD
+          echo "Diretório de trabalho original: $WORK_DIR"
           
           # Sintaxe do Fish para adicionar ao PATH e exportar (-x)
-          set -x PATH "$PWD/target/release" $PATH
+          set -x PATH "$WORK_DIR/target/release" $PATH
           
           # Debug para confirmar
           echo "Rodando dentro do Fish!"
@@ -69,20 +70,24 @@ jobs:
           try-rs example4
           try-rs https://github.com/tassiovirginio/try-rs.git
           
+          # IMPORTANTE: Volta para o diretório original
+          cd $WORK_DIR
+          echo "Voltando para: $PWD"
+          
           # Debug: mostra GIF antes do VHS
           echo "GIF antes do VHS:"
           ls -lh try-rs.gif 2>/dev/null || echo "GIF não existe ainda"
           
-          # Executa o VHS
+          # Executa o VHS com caminho absoluto para o output
           echo "Iniciando VHS..."
-          vhs try-rs.tape
+          vhs $WORK_DIR/try-rs.tape -o $WORK_DIR/try-rs.gif
           
           # Debug: mostra GIF depois do VHS
           echo "GIF depois do VHS:"
-          ls -lh try-rs.gif
+          ls -lh $WORK_DIR/try-rs.gif
           
           # Verifica se o GIF foi criado
-          if test -f try-rs.gif
+          if test -f $WORK_DIR/try-rs.gif
             echo "✅ VHS executou com sucesso - GIF criado"
           else
             echo "❌ VHS falhou - GIF não foi criado"
