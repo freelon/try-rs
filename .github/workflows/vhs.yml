@@ -31,6 +31,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg libnss3 libxss1 libasound2t64 fish ttyd
 
+      - name: Install Nerd Fonts
+        run: |
+          mkdir -p ~/.local/share/fonts
+          cd ~/.local/share/fonts
+          
+          # Baixa e instala JetBrainsMono Nerd Font
+          curl -fLO https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/JetBrainsMono.zip
+          unzip -o JetBrainsMono.zip
+          rm JetBrainsMono.zip
+          
+          # Atualiza cache de fontes
+          fc-cache -fv
+          
+          echo "✅ Nerd Fonts instaladas:"
+          fc-list | grep -i "JetBrains" | head -5
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
