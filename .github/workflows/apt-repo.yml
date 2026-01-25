@@ -50,12 +50,8 @@ jobs:
           mkdir -p apt-repo/dists/stable/main/binary-amd64
           mkdir -p apt-repo/pool/main
           
-          # Download latest deb from release or use built one
-          if [ -f "../target/debian/*.deb" ]; then
-            cp ../target/debian/*.deb apt-repo/pool/main/try-rs.deb
-          else
-            wget https://github.com/${{ github.repository }}/releases/latest/download/try-rs_*.deb -O apt-repo/pool/main/try-rs.deb
-          fi
+          # Copy deb file from build
+          cp ../target/debian/*.deb apt-repo/pool/main/
           
           # Generate Packages file
           cd apt-repo
