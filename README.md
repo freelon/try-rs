@@ -22,7 +22,7 @@ A blazing fast, Rust-based workspace manager for your temporary experiments.
 
 **try-rs** is a CLI tool designed to manage the chaos of temporary projects. Instead of cluttering your Desktop or `/tmp` with `test1`, `new-test`, and `final-test`, `try-rs` organizes them into date-prefixed directories, offering a robust TUI (Terminal User Interface) to create, navigate, and clean up your experiments.
 
-![try-rs.gif](https://tassiovirginio.github.io/try-rs/try-rs.gif)
+![try-rs.gif](https://raw.githubusercontent.com/tassiovirginio/try-rs/refs/heads/main/try-rs.gif)
 
 ## Features
 
