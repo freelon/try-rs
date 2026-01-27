@@ -50,6 +50,7 @@ pub struct Config {
     pub theme: Option<String>,
     pub colors: Option<ThemeConfig>,
     pub editor: Option<String>,
+    pub apply_date_prefix: Option<bool>,
 }
 
 pub fn get_file_config_toml_name() -> String {
@@ -112,7 +113,14 @@ pub fn load_file_config_toml_if_exists() -> Option<Config> {
     None
 }
 
-pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<PathBuf>) {
+pub fn load_configuration() -> (
+    PathBuf,
+    Theme,
+    Option<String>,
+    bool,
+    Option<PathBuf>,
+    Option<bool>,
+) {
     let default_path = dirs::home_dir()
         .expect("Folder not found")
         .join("work")
@@ -126,6 +134,7 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
         .ok()
         .or_else(|| std::env::var("EDITOR").ok());
     let mut is_first_run = false;
+    let mut apply_date_prefix = None;
 
     let loaded_config_path = if let Some(path) = std::env::var_os("TRY_CONFIG_DIR")
         .map(|p| PathBuf::from(p).join(get_file_config_toml_name()))
@@ -203,6 +212,7 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
                 icon_file: parse(colors.icon_file, def.icon_file),
             };
         }
+        apply_date_prefix = config.apply_date_prefix;
     } else {
         is_first_run = true;
     }
@@ -213,6 +223,7 @@ pub fn load_configuration() -> (PathBuf, Theme, Option<String>, bool, Option<Pat
         editor_cmd,
         is_first_run,
         loaded_config_path,
+        apply_date_prefix,
     )
 }
 
@@ -221,12 +232,14 @@ pub fn save_config(
     theme: &Theme,
     tries_path: &Path,
     editor: &Option<String>,
+    apply_date_prefix: Option<bool>,
 ) -> std::io::Result<()> {
     let config = Config {
         tries_path: Some(tries_path.to_string_lossy().to_string()),
         theme: Some(theme.name.clone()),
         colors: None,
         editor: editor.clone(),
+        apply_date_prefix,
     };
 
     let toml_string =

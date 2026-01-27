@@ -31,6 +31,7 @@ pub enum AppMode {
 #[derive(Clone)]
 pub struct TryEntry {
     pub name: String,
+    pub display_name: String,
     pub modified: SystemTime,
     pub created: SystemTime,
     pub score: i64,
@@ -59,6 +60,7 @@ pub struct App {
     pub theme: Theme,
     pub editor_cmd: Option<String>,
     pub wants_editor: bool,
+    pub apply_date_prefix: Option<bool>,
 
     pub available_themes: Vec<Theme>,
     pub theme_list_state: ListState,
@@ -76,6 +78,7 @@ impl App {
         theme: Theme,
         editor_cmd: Option<String>,
         config_path: Option<PathBuf>,
+        apply_date_prefix: Option<bool>,
     ) -> Self {
         let mut entries = Vec::new();
         if let Ok(read_dir) = fs::read_dir(&path) {
@@ -92,14 +95,25 @@ impl App {
                     let is_mise = entry.path().join("mise.toml").exists();
                     let is_cargo = entry.path().join("Cargo.toml").exists();
                     let is_maven = entry.path().join("pom.xml").exists();
+
+                    let created;
+                    let display_name;
+                    if let Some((date_prefix, remainder)) = utils::extract_prefix_date(&name) {
+                        created = date_prefix;
+                        display_name = remainder;
+                    } else {
+                        created = metadata.created().unwrap_or(SystemTime::UNIX_EPOCH);
+                        display_name = name.clone();
+                    }
                     let is_flutter = entry.path().join("pubspec.yaml").exists();
                     let is_go = entry.path().join("go.mod").exists();
                     let is_python = entry.path().join("pyproject.toml").exists()
                         || entry.path().join("requirements.txt").exists();
                     entries.push(TryEntry {
                         name,
+                        display_name,
                         modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
-                        created: metadata.created().unwrap_or(SystemTime::UNIX_EPOCH),
+                        created,
                         score: 0,
                         is_git,
                         is_worktree,
@@ -135,6 +149,7 @@ impl App {
             theme,
             editor_cmd,
             wants_editor: false,
+            apply_date_prefix,
             available_themes: themes,
             theme_list_state: theme_state,
             original_theme: None,
@@ -553,15 +568,15 @@ pub fn run_app(
                         + created_width
                         + 2;
                     let available_for_name = width.saturating_sub(reserved);
-                    let name_len = entry.name.chars().count();
+                    let name_len = entry.display_name.chars().count();
 
                     let (display_name, padding) = if name_len > available_for_name {
                         let safe_len = available_for_name.saturating_sub(3);
-                        let truncated: String = entry.name.chars().take(safe_len).collect();
+                        let truncated: String = entry.display_name.chars().take(safe_len).collect();
                         (format!("{}...", truncated), 1)
                     } else {
                         (
-                            entry.name.clone(),
+                            entry.display_name.clone(),
                             width.saturating_sub(
                                 icon_width
                                     + created_width
@@ -825,7 +840,8 @@ pub fn run_app(
                             // Save current theme before opening selector
                             app.original_theme = Some(app.theme.clone());
                             // Find and select current theme in the list
-                            let current_idx = app.available_themes
+                            let current_idx = app
+                                .available_themes
                                 .iter()
                                 .position(|t| t.name == app.theme.name)
                                 .unwrap_or(0);
@@ -957,6 +973,7 @@ pub fn run_app(
                                         &app.theme,
                                         &app.base_path,
                                         &app.editor_cmd,
+                                        app.apply_date_prefix,
                                     ) {
                                         app.status_message = Some(format!("Error saving: {}", e));
                                     } else {
@@ -1034,9 +1051,13 @@ pub fn run_app(
                                     .join(&config_name)
                             };
 
-                            if let Err(e) =
-                                save_config(&path, &app.theme, &app.base_path, &app.editor_cmd)
-                            {
+                            if let Err(e) = save_config(
+                                &path,
+                                &app.theme,
+                                &app.base_path,
+                                &app.editor_cmd,
+                                app.apply_date_prefix,
+                            ) {
                                 app.status_message = Some(format!("Error saving config: {}", e));
                             } else {
                                 app.config_path = Some(path);
