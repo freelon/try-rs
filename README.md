@@ -165,6 +165,7 @@ By default, experiments are stored in `~/work/tries`. You can customize the path
 # config.toml
 tries_path = "~/Development/playground"
 editor = "code" # Optional: code, nvim, hx, etc.
+apply_date_prefix = true # optional, default is false
 
 # Theme configuration (choose one of the available themes)
 theme = "Catppuccin Mocha"

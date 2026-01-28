@@ -24,6 +24,8 @@ use config::load_configuration;
 use shell::{setup_bash, setup_fish, setup_nushell, setup_powershell, setup_zsh};
 use tui::{App, run_app};
 
+use crate::utils::generate_prefix_date;
+
 fn main() -> Result<()> {
     let cli = match Cli::try_parse() {
         Ok(cli) => cli,
@@ -33,7 +35,8 @@ fn main() -> Result<()> {
             std::process::exit(if err.use_stderr() { 1 } else { 0 });
         }
     };
-    let (tries_dir, theme, editor_cmd, _is_first_run, config_path) = load_configuration();
+    let (tries_dir, theme, editor_cmd, _is_first_run, config_path, apply_date_prefix) =
+        load_configuration();
 
     if !tries_dir.exists() {
         fs::create_dir_all(&tries_dir)?;
@@ -50,32 +53,70 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    if let Some(worktree_name) = cli.worktree {
+    if let Some(worktree_branch_name) = cli.worktree {
         if !utils::is_inside_git_repo(".") {
             eprintln!("Error: Not inside a git repository.");
             eprintln!("The -w/--worktree option only works inside a git repository.");
             std::process::exit(1);
         }
 
-        let new_path = tries_dir.join(&worktree_name);
+        let mut folder_name = worktree_branch_name.clone();
+        if Some(true) == apply_date_prefix {
+            folder_name = format!("{} {}", generate_prefix_date(), folder_name);
+        }
+
+        let new_path = tries_dir.join(&folder_name);
 
         if new_path.exists() {
-            eprintln!("Worktree '{}' already exists.", worktree_name);
+            eprintln!("Worktree at '{}' already exists.", folder_name);
             println!("cd '{}'", new_path.to_string_lossy());
             return Ok(());
         }
 
         eprintln!(
             "Creating worktree '{}' at {}...",
-            worktree_name,
+            &worktree_branch_name,
             new_path.display()
         );
 
-        let status = std::process::Command::new("git")
-            .args(["worktree", "add", new_path.to_str().unwrap()])
+        let branch_exists_status = std::process::Command::new("git")
+            .args(["show-ref", &format!("refs/heads/{worktree_branch_name}")])
             .stdout(std::io::stderr())
             .stderr(Stdio::inherit())
             .status();
+
+        let branch_exists = match branch_exists_status {
+            Ok(s) => s.success(),
+            _ => {
+                eprintln!("Error: Failed to create worktree.");
+                std::process::exit(1);
+            }
+        };
+
+        let status = if branch_exists {
+            std::process::Command::new("git")
+                .args([
+                    "worktree",
+                    "add",
+                    new_path.to_str().unwrap(),
+                    &worktree_branch_name,
+                ])
+                .stdout(std::io::stderr())
+                .stderr(Stdio::inherit())
+                .status()
+        } else {
+            std::process::Command::new("git")
+                .args([
+                    "worktree",
+                    "add",
+                    "-b",
+                    &worktree_branch_name,
+                    new_path.to_str().unwrap(),
+                ])
+                .stdout(std::io::stderr())
+                .stderr(Stdio::inherit())
+                .status()
+        };
 
         match status {
             Ok(s) if s.success() => {
@@ -147,6 +188,7 @@ fn main() -> Result<()> {
             theme,
             editor_cmd.clone(),
             config_path.clone(),
+            apply_date_prefix,
         );
         let res = run_app(&mut terminal, app);
 
@@ -170,7 +212,11 @@ fn main() -> Result<()> {
             if utils::is_git_url(&selection) {
                 let repo_name = utils::extract_repo_name(&selection);
 
-                let folder_name = cli.destination.clone().unwrap_or(repo_name);
+                let mut folder_name = cli.destination.clone().unwrap_or(repo_name);
+                if Some(true) == apply_date_prefix {
+                    folder_name = format!("{} {}", generate_prefix_date(), folder_name);
+                }
+
                 let new_path = tries_dir.join(&folder_name);
 
                 eprintln!("Cloning {} into {}...", selection, folder_name);
@@ -204,7 +250,11 @@ fn main() -> Result<()> {
                     }
                 }
             } else {
-                let new_name = selection;
+                let mut new_name = selection;
+                let date_prefix = generate_prefix_date();
+                if Some(true) == apply_date_prefix && !new_name.starts_with(&date_prefix) {
+                    new_name = format!("{date_prefix} {new_name}");
+                }
 
                 let new_path = tries_dir.join(&new_name);
                 fs::create_dir_all(&new_path)?;

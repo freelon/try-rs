@@ -1,6 +1,11 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::SystemTime;
+
+use chrono::{Local, NaiveDate, NaiveDateTime};
+
+const DATE_PREFIX_FORMAT: &str = "%Y-%m-%d";
 
 /// Checks if current directory is inside a git repository
 pub fn is_inside_git_repo<P: AsRef<Path>>(path: P) -> bool {
@@ -122,4 +127,17 @@ pub fn get_free_disk_space_mb(path: &Path) -> Option<u64> {
 #[cfg(not(unix))]
 pub fn get_free_disk_space_mb(_path: &Path) -> Option<u64> {
     None
+}
+
+pub fn extract_prefix_date(name: &str) -> Option<(SystemTime, String)> {
+    let (lhs, rhs) = name.split_once(' ')?;
+    let naive_date = NaiveDate::parse_from_str(lhs, DATE_PREFIX_FORMAT).ok()?;
+    let dt: NaiveDateTime = naive_date.into();
+    let dt_local = dt.and_local_timezone(Local).single()?;
+    Some((dt_local.into(), rhs.into()))
+}
+
+pub fn generate_prefix_date() -> String {
+    let now = Local::now();
+    now.format("%Y-%m-%d").to_string()
 }
