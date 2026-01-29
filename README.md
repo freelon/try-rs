@@ -119,10 +119,10 @@ Since try-rs needs to change your shell's current directory, it requires a small
 try-rs --setup fish
 ```
 
-(Optional) Create an abbreviation:
+(Optional) Create an alias:
 
 ```
-abbr --add try try-rs
+alias try "try-rs"
 ```
 
 - Zsh
