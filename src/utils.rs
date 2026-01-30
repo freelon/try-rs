@@ -143,8 +143,8 @@ pub fn generate_prefix_date() -> String {
     now.format("%Y-%m-%d").to_string()
 }
 
-pub fn list_existing_for_name(name: &str, path: &PathBuf) -> Vec<String> {
-    let mut result = vec![];
+pub fn folder_for_name_ambiguous(name: &str, path: &PathBuf) -> bool {
+    let mut matches = 0;
     if let Ok(read_dir) = fs::read_dir(&path) {
         for entry in read_dir.flatten() {
             if let Ok(metadata) = entry.metadata()
@@ -152,14 +152,14 @@ pub fn list_existing_for_name(name: &str, path: &PathBuf) -> Vec<String> {
             {
                 let filename = entry.file_name().to_string_lossy().to_string();
                 if filename == name {
-                    result.push(filename);
+                    matches += 1;
                 } else if let Some((_, stripped_name)) = extract_prefix_date(&filename)
                     && name == stripped_name
                 {
-                    result.push(filename);
+                    matches += 1;
                 }
             }
         }
     }
-    result
+    matches > 1
 }

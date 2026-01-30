@@ -174,7 +174,7 @@ fn main() -> Result<()> {
     let selection_result: Option<String>;
     let mut open_editor = false;
 
-    let (existing, query) = match &cli.name_or_url {
+    let (existing_ambiguous, query) = match &cli.name_or_url {
         Some(name) => {
             let folder_name = if utils::is_git_url(&name) {
                 let repo_name = utils::extract_repo_name(&name);
@@ -184,15 +184,15 @@ fn main() -> Result<()> {
             };
 
             (
-                utils::list_existing_for_name(&folder_name, &tries_dir),
+                utils::folder_for_name_ambiguous(&folder_name, &tries_dir),
                 Some(folder_name.to_string()),
             )
         }
-        None => (vec![], None),
+        None => (false, None),
     };
 
     if let Some(name) = &cli.name_or_url
-        && existing.len() <= 1
+        && !existing_ambiguous
     {
         selection_result = Some(name.clone());
     } else {
@@ -201,7 +201,7 @@ fn main() -> Result<()> {
         execute!(stderr, EnterAlternateScreen)?;
         let backend = CrosstermBackend::new(stderr);
         let mut terminal = Terminal::new(backend)?;
-        let query = if existing.len() > 1 { query } else { None };
+        let query = if existing_ambiguous { query } else { None };
 
         let app = App::new(
             tries_dir.clone(),
