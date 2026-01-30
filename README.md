@@ -127,7 +127,7 @@ try-rs --setup fish
 
 (Optional) Create an alias:
 
-```
+```bash
 alias try "try-rs"
 ```
 
