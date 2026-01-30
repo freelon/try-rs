@@ -35,8 +35,15 @@ fn main() -> Result<()> {
             std::process::exit(if err.use_stderr() { 1 } else { 0 });
         }
     };
-    let (tries_dir, theme, editor_cmd, _is_first_run, config_path, apply_date_prefix, transparent_background) =
-        load_configuration();
+    let (
+        tries_dir,
+        theme,
+        editor_cmd,
+        _is_first_run,
+        config_path,
+        apply_date_prefix,
+        transparent_background,
+    ) = load_configuration();
 
     if !tries_dir.exists() {
         fs::create_dir_all(&tries_dir)?;

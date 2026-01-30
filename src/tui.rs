@@ -9,6 +9,11 @@ use std::{
     fs,
     io::{self},
     path::PathBuf,
+    sync::{
+        Arc,
+        atomic::{AtomicU64, Ordering},
+    },
+    thread,
     time::SystemTime,
 };
 
@@ -71,6 +76,7 @@ pub struct App {
     pub config_location_state: ListState,
 
     pub cached_free_space_mb: Option<u64>,
+    pub folder_size_mb: Arc<AtomicU64>,
 }
 
 impl App {
@@ -160,7 +166,17 @@ impl App {
             config_path,
             config_location_state: ListState::default(),
             cached_free_space_mb: utils::get_free_disk_space_mb(&path),
+            folder_size_mb: Arc::new(AtomicU64::new(0)),
         };
+
+        // Spawn background thread to calculate folder size
+        let folder_size_arc = Arc::clone(&app.folder_size_mb);
+        let path_clone = path.clone();
+        thread::spawn(move || {
+            let size = utils::get_folder_size_mb(&path_clone);
+            folder_size_arc.store(size, Ordering::Relaxed);
+        });
+
         app.update_search();
         app
     }
@@ -485,7 +501,7 @@ pub fn run_app(
 
             let search_chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Min(20), Constraint::Length(25)])
+                .constraints([Constraint::Min(20), Constraint::Length(45)])
                 .split(chunks[0]);
 
             let search_text = Paragraph::new(app.query.clone())
@@ -506,8 +522,21 @@ pub fn run_app(
                 .map(|s| format!("{} MB", s))
                 .unwrap_or_else(|| "N/A".to_string());
 
+            let folder_size = app.folder_size_mb.load(Ordering::Relaxed);
+            let folder_size_str = if folder_size == 0 {
+                "--- MB".to_string()
+            } else {
+                format!("{} MB", folder_size)
+            };
+
             let memory_info = Paragraph::new(Line::from(vec![
                 Span::styled("󰋊 ", Style::default().fg(app.theme.title_rs)),
+                Span::styled("Used: ", Style::default().fg(app.theme.helpers_colors)),
+                Span::styled(
+                    folder_size_str,
+                    Style::default().fg(app.theme.status_message),
+                ),
+                Span::styled(" | ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled("Free: ", Style::default().fg(app.theme.helpers_colors)),
                 Span::styled(free_space, Style::default().fg(app.theme.status_message)),
             ]))
