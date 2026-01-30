@@ -174,14 +174,34 @@ fn main() -> Result<()> {
     let selection_result: Option<String>;
     let mut open_editor = false;
 
-    if let Some(name) = cli.name_or_url {
-        selection_result = Some(name);
+    let (existing, query) = match &cli.name_or_url {
+        Some(name) => {
+            let folder_name = if utils::is_git_url(&name) {
+                let repo_name = utils::extract_repo_name(&name);
+                &cli.destination.clone().unwrap_or(repo_name)
+            } else {
+                name
+            };
+
+            (
+                utils::list_existing_for_name(&folder_name, &tries_dir),
+                Some(folder_name.to_string()),
+            )
+        }
+        None => (vec![], None),
+    };
+
+    if let Some(name) = &cli.name_or_url
+        && existing.len() <= 1
+    {
+        selection_result = Some(name.clone());
     } else {
         enable_raw_mode()?;
         let mut stderr = io::stderr();
         execute!(stderr, EnterAlternateScreen)?;
         let backend = CrosstermBackend::new(stderr);
         let mut terminal = Terminal::new(backend)?;
+        let query = if existing.len() > 1 { query } else { None };
 
         let app = App::new(
             tries_dir.clone(),
@@ -189,6 +209,7 @@ fn main() -> Result<()> {
             editor_cmd.clone(),
             config_path.clone(),
             apply_date_prefix,
+            query,
         );
         let res = run_app(&mut terminal, app);
 
