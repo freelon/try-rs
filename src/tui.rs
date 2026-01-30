@@ -61,6 +61,7 @@ pub struct App {
     pub editor_cmd: Option<String>,
     pub wants_editor: bool,
     pub apply_date_prefix: Option<bool>,
+    pub transparent_background: bool,
 
     pub available_themes: Vec<Theme>,
     pub theme_list_state: ListState,
@@ -79,6 +80,7 @@ impl App {
         editor_cmd: Option<String>,
         config_path: Option<PathBuf>,
         apply_date_prefix: Option<bool>,
+        transparent_background: bool,
     ) -> Self {
         let mut entries = Vec::new();
         if let Ok(read_dir) = fs::read_dir(&path) {
@@ -150,6 +152,7 @@ impl App {
             editor_cmd,
             wants_editor: false,
             apply_date_prefix,
+            transparent_background,
             available_themes: themes,
             theme_list_state: theme_state,
             original_theme: None,
@@ -455,6 +458,14 @@ pub fn run_app(
 ) -> Result<(Option<String>, bool)> {
     while !app.should_quit {
         terminal.draw(|f| {
+            // Render background if not transparent
+            if !app.transparent_background {
+                if let Some(bg_color) = app.theme.background {
+                    let background = Block::default().style(Style::default().bg(bg_color));
+                    f.render_widget(background, f.area());
+                }
+            }
+
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
@@ -974,6 +985,7 @@ pub fn run_app(
                                         &app.base_path,
                                         &app.editor_cmd,
                                         app.apply_date_prefix,
+                                        Some(app.transparent_background),
                                     ) {
                                         app.status_message = Some(format!("Error saving: {}", e));
                                     } else {
@@ -1057,6 +1069,7 @@ pub fn run_app(
                                 &app.base_path,
                                 &app.editor_cmd,
                                 app.apply_date_prefix,
+                                Some(app.transparent_background),
                             ) {
                                 app.status_message = Some(format!("Error saving config: {}", e));
                             } else {
