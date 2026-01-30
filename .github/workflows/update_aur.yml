@@ -83,6 +83,9 @@ jobs:
             TAG_NAME="${{ inputs.tag_name }}"
           fi
           
+          # Clean up downloaded source files
+          rm -f *.tar.gz
+          
           git config user.name "Tássio Virginio"
           git config user.email "tassiovirginio@gmail.com"
           
