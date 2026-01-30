@@ -45,7 +45,7 @@ git tag "v${VERSION}"
 
 # Push everything
 echo "🚀 Pushing to repository..."
-git push --follow-tags
+git push origin v${VERSION}
 
 echo "✅ Release v${VERSION} completed successfully!"
 echo ""
