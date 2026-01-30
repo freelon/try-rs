@@ -63,6 +63,12 @@ cargo install --path . --bin try-rs
 cargo install try-rs
 ```
 
+### Eget
+
+```bash
+eget tassiovirginio/try-rs
+```
+
 ### Install in Archlinux
 
 ```bash
