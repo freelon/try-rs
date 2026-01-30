@@ -519,12 +519,20 @@ pub fn run_app(
 
             let free_space = app
                 .cached_free_space_mb
-                .map(|s| format!("{} MB", s))
+                .map(|s| {
+                    if s >= 1000 {
+                        format!("{:.1} GB", s as f64 / 1024.0)
+                    } else {
+                        format!("{} MB", s)
+                    }
+                })
                 .unwrap_or_else(|| "N/A".to_string());
 
             let folder_size = app.folder_size_mb.load(Ordering::Relaxed);
             let folder_size_str = if folder_size == 0 {
-                "--- MB".to_string()
+                "---".to_string()
+            } else if folder_size >= 1000 {
+                format!("{:.1} GB", folder_size as f64 / 1024.0)
             } else {
                 format!("{} MB", folder_size)
             };
