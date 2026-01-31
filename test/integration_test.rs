@@ -113,6 +113,7 @@ struct Harness {
 impl Harness {
     fn new(with_date_prefix: bool) -> Self {
         let dir = TempDir::new("try-test").expect("couldn't generate temp directory for test");
+
         let mut config = String::new();
         config.push_str(&format!(
             "tries_path = \"{}\"\n",
@@ -121,8 +122,8 @@ impl Harness {
         if with_date_prefix {
             config.push_str("apply_date_prefix = true\n");
         }
-        dbg!(&config);
         fs::write(dir.path().join("config.toml"), config).expect("could not create config file");
+
         Harness { dir }
     }
 
