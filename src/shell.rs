@@ -20,7 +20,10 @@ pub fn get_shell_integration_path(shell: &ShellType) -> PathBuf {
     };
 
     match shell {
-        ShellType::Fish => config_dir.join("fish").join("functions").join("try-rs.fish"),
+        ShellType::Fish => config_dir
+            .join("fish")
+            .join("functions")
+            .join("try-rs.fish"),
         ShellType::Zsh => config_dir.join("try-rs.zsh"),
         ShellType::Bash => config_dir.join("try-rs.bash"),
         ShellType::PowerShell => config_dir.join("try-rs.ps1"),

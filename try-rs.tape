@@ -16,44 +16,44 @@ Show
 
 Type "try-rs"
 Enter
-Sleep 3s
+Sleep 2s
 Down
-Sleep 3s
+Sleep 2s
 Down
-Sleep 3s
+Sleep 2s
 Down
-Sleep 3s
+Sleep 2s
+Up
+Sleep 2s
 Up
 Sleep 3s
-Up
-Sleep 4s
 Ctrl+D
-Sleep 5s
+Sleep 4s
 Type n 
 Sleep 5s
 Ctrl+A
-Sleep 6s
-Escape
-Sleep 3s
-Ctrl+T
 Sleep 4s
-Down 
-Sleep 3s
-Down 
-Sleep 3s
-Down 
-Sleep 3s
-Down 
-Sleep 3s
-Down 
-Sleep 3s
-Down 
-Sleep 3s
-Down 
-Sleep 3s
 Escape
-Sleep 3s
+Sleep 2s
+Ctrl+T
+Sleep 2s
+Down 
+Sleep 2s
+Down 
+Sleep 2s
+Down 
+Sleep 2s
+Down 
+Sleep 2s
+Down 
+Sleep 2s
+Down 
+Sleep 2s
+Down 
+Sleep 2s
+Escape
+Sleep 2s
 Type "example4"
-Sleep 3s
+Sleep 2s
 Enter
-Sleep 3s
+Sleep 2s
