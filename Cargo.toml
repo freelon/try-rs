@@ -2,7 +2,7 @@ cargo-features = ["edition2024"]
 
 [package]
 name = "try-rs"
-version = "0.1.57"
+version = "0.1.58"
 authors = ["Tassio Virginio <tassio.virginio@gmail.com>"]
 homepage = "https://github.com/tassiovirginio/try-rs"
 edition = "2024"
@@ -54,11 +54,11 @@ assets = [
 ]
 
 [profile.release]
-strip = true        # Automatically strip symbols from the binary.
-opt-level = "z"     # Optimize for size.
-lto = true          # Enable LTO
-codegen-units = 1   # Use a single codegen for size optimization
-panic = "abort"     # Remove traceback information
+strip = true      # Automatically strip symbols from the binary.
+opt-level = "z"   # Optimize for size.
+lto = true        # Enable LTO
+codegen-units = 1 # Use a single codegen for size optimization
+panic = "abort"   # Remove traceback information
 
 [[test]]
 name = "integration_test"
