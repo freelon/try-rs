@@ -340,6 +340,7 @@ You can also bypass the UI:
 | `try-rs -s <url>` / `try-rs --shallow-clone`   | Shallow clone (--depth 1) when cloning repositories                 |
 | `try-rs -w <name>` / `try-rs --worktree`       | Create a git worktree from current repository (must be inside repo) |
 | `try-rs --setup <shell>`                       | Setup shell integration (fish, zsh, bash, nu-shell, power-shell)    |
+| `try-rs --setup-stdout <shell>`                | Print shell integration script to stdout (for manual setup)         |
 | `try-rs --version`                             | Show application version                                            |
 | `try-rs --help`                                | Show help message                                                   |
 
