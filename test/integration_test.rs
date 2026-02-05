@@ -17,10 +17,8 @@ fn shows_help() {
         .expect("failed to spawn process");
 
     let output = String::from_utf8(p.stdout).unwrap();
-    let err = String::from_utf8(p.stderr).unwrap();
 
-    assert!(output.is_empty());
-    assert!(err.contains("Usage: try-rs"));
+    assert!(output.contains("Usage: try-rs"));
 }
 
 #[test]
