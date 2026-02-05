@@ -32,8 +32,8 @@ fn main() -> Result<()> {
     let cli = match Cli::try_parse() {
         Ok(cli) => cli,
         Err(err) => {
-            let mut stderr = std::io::stderr();
-            write!(stderr, "{}", err).unwrap();
+            let mut stdout = std::io::stdout();
+            write!(stdout, "{}", err).unwrap();
             std::process::exit(if err.use_stderr() { 1 } else { 0 });
         }
     };

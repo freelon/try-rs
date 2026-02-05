@@ -19,6 +19,14 @@ pub fn get_shell_content(shell: &ShellType) -> &'static str {
     match shell {
         ShellType::Fish => {
             r#"function try-rs
+    # Pass flags/options directly to stdout without capturing
+    for arg in $argv
+        if string match -q -- '-*' $arg
+            command try-rs $argv
+            return
+        end
+    end
+
     # Captures the output of the binary (stdout) which is the "cd" command
     # The TUI is rendered on stderr, so it doesn't interfere.
     set command (command try-rs $argv | string collect)
@@ -31,6 +39,13 @@ end
         }
         ShellType::Zsh => {
             r#"try-rs() {
+    # Pass flags/options directly to stdout without capturing
+    for arg in "$@"; do
+        case "$arg" in
+            -*) command try-rs "$@"; return ;;
+        esac
+    done
+
     # Captures the output of the binary (stdout) which is the "cd" command
     # The TUI is rendered on stderr, so it doesn't interfere.
     local output
@@ -44,6 +59,13 @@ end
         }
         ShellType::Bash => {
             r#"try-rs() {
+    # Pass flags/options directly to stdout without capturing
+    for arg in "$@"; do
+        case "$arg" in
+            -*) command try-rs "$@"; return ;;
+        esac
+    done
+
     # Captures the output of the binary (stdout) which is the "cd" command
     # The TUI is rendered on stderr, so it doesn't interfere.
     local output
@@ -58,6 +80,14 @@ end
         ShellType::PowerShell => {
             r#"# try-rs integration for PowerShell
 function try-rs {
+    # Pass flags/options directly to stdout without capturing
+    foreach ($a in $args) {
+        if ($a -like '-*') {
+            & try-rs.exe @args
+            return
+        }
+    }
+
     # Captures the output of the binary (stdout) which is the "cd" or editor command
     # The TUI is rendered on stderr, so it doesn't interfere.
     $command = (try-rs.exe @args)
@@ -70,6 +100,14 @@ function try-rs {
         }
         ShellType::NuShell => {
             r#"def --wrapped try-rs [...args] {
+    # Pass flags/options directly to stdout without capturing
+    for arg in $args {
+        if ($arg | str starts-with '-') {
+            ^try-rs.exe ...$args
+            return
+        }
+    }
+
     # Capture output. Stderr (TUI) goes directly to terminal.
     let output = (try-rs.exe ...$args)
 
