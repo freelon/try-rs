@@ -106,7 +106,6 @@ pub struct AppConfig {
     pub tries_dir: PathBuf,
     pub theme: Theme,
     pub editor_cmd: Option<String>,
-    pub is_first_run: bool,
     pub config_path: Option<PathBuf>,
     pub apply_date_prefix: Option<bool>,
     pub transparent_background: Option<bool>,
@@ -125,7 +124,6 @@ pub fn load_configuration() -> AppConfig {
     let mut editor_cmd = std::env::var("VISUAL")
         .ok()
         .or_else(|| std::env::var("EDITOR").ok());
-    let mut is_first_run = false;
     let mut apply_date_prefix = None;
     let mut transparent_background = None;
 
@@ -193,15 +191,12 @@ pub fn load_configuration() -> AppConfig {
         }
         apply_date_prefix = config.apply_date_prefix;
         transparent_background = config.transparent_background;
-    } else {
-        is_first_run = true;
     }
 
     AppConfig {
         tries_dir: final_path,
         theme,
         editor_cmd,
-        is_first_run,
         config_path: loaded_config_path,
         apply_date_prefix,
         transparent_background,

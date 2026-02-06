@@ -215,7 +215,6 @@ fn main() -> Result<()> {
         tries_dir,
         theme,
         editor_cmd,
-        is_first_run: _,
         config_path,
         apply_date_prefix,
         transparent_background,
