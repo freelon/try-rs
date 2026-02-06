@@ -145,16 +145,23 @@ pub fn generate_prefix_date() -> String {
 
 pub fn get_folder_size_mb(path: &Path) -> u64 {
     fn dir_size(path: &Path) -> u64 {
+        let mut stack = vec![path.to_path_buf()];
         let mut size = 0u64;
-        if let Ok(entries) = fs::read_dir(path) {
+        while let Some(dir) = stack.pop() {
+            let Ok(entries) = fs::read_dir(&dir) else {
+                continue;
+            };
             for entry in entries.flatten() {
-                if let Ok(metadata) = entry.metadata() {
-                    if metadata.is_dir() {
-                        size += dir_size(&entry.path());
-                    } else {
-                        size += metadata.len();
-                    }
+                // Use symlink_metadata to avoid following symlinks
+                let Ok(meta) = entry.metadata() else {
+                    continue;
+                };
+                if meta.is_dir() {
+                    stack.push(entry.path());
+                } else if meta.is_file() {
+                    size += meta.len();
                 }
+                // Symlinks and other special files are intentionally skipped
             }
         }
         size
@@ -191,4 +198,113 @@ pub enum SelectionResult {
     New(String),
     /// Nothing was selected in the UI, quit
     None,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempdir::TempDir;
+
+    #[test]
+    fn is_git_url_valid_urls() {
+        assert!(is_git_url("https://github.com/user/repo.git"));
+        assert!(is_git_url("http://github.com/user/repo"));
+        assert!(is_git_url("git@github.com:user/repo.git"));
+        assert!(is_git_url("ssh://git@github.com/user/repo"));
+        assert!(is_git_url("some-repo.git"));
+    }
+
+    #[test]
+    fn is_git_url_rejects_plain_names() {
+        assert!(!is_git_url("my-project"));
+        assert!(!is_git_url("foo/bar"));
+        assert!(!is_git_url(""));
+    }
+
+    #[test]
+    fn extract_repo_name_from_https() {
+        assert_eq!(
+            extract_repo_name("https://github.com/user/repo.git"),
+            "repo"
+        );
+        assert_eq!(
+            extract_repo_name("https://github.com/user/repo"),
+            "repo"
+        );
+    }
+
+    #[test]
+    fn extract_repo_name_from_ssh() {
+        assert_eq!(extract_repo_name("git@github.com:user/repo.git"), "repo");
+    }
+
+    #[test]
+    fn extract_repo_name_trailing_slash() {
+        assert_eq!(
+            extract_repo_name("https://github.com/user/repo/"),
+            "repo"
+        );
+    }
+
+    #[test]
+    fn extract_prefix_date_valid() {
+        let result = extract_prefix_date("2024-06-15 my-project");
+        assert!(result.is_some());
+        let (_, name) = result.unwrap();
+        assert_eq!(name, "my-project");
+    }
+
+    #[test]
+    fn extract_prefix_date_invalid() {
+        assert!(extract_prefix_date("not-a-date project").is_none());
+        assert!(extract_prefix_date("nodate").is_none());
+    }
+
+    #[test]
+    fn generate_prefix_date_format() {
+        let date = generate_prefix_date();
+        // Format is YYYY-MM-DD
+        assert_eq!(date.len(), 10);
+        assert_eq!(&date[4..5], "-");
+        assert_eq!(&date[7..8], "-");
+    }
+
+    #[test]
+    fn expand_path_tilde() {
+        let expanded = expand_path("~/some/dir");
+        assert!(!expanded.starts_with("~"));
+        assert!(expanded.to_string_lossy().ends_with("some/dir"));
+    }
+
+    #[test]
+    fn expand_path_absolute() {
+        let expanded = expand_path("/absolute/path");
+        assert_eq!(expanded, PathBuf::from("/absolute/path"));
+    }
+
+    #[test]
+    fn matching_folders_exact_and_dated() {
+        let tmp = TempDir::new("match-test").unwrap();
+        let base = tmp.path();
+        fs::create_dir(base.join("foo")).unwrap();
+        fs::create_dir(base.join("2024-01-15 foo")).unwrap();
+        fs::create_dir(base.join("bar")).unwrap();
+
+        let matches = matching_folders("foo", &base.to_path_buf());
+        assert!(matches.contains(&"foo".to_string()));
+        assert!(matches.contains(&"2024-01-15 foo".to_string()));
+        assert!(!matches.contains(&"bar".to_string()));
+    }
+
+    #[test]
+    fn get_folder_size_mb_empty() {
+        let tmp = TempDir::new("size-test").unwrap();
+        assert_eq!(get_folder_size_mb(tmp.path()), 0);
+    }
+
+    #[test]
+    fn get_folder_size_mb_nonexistent() {
+        assert_eq!(get_folder_size_mb(Path::new("/nonexistent/path")), 0);
+    }
 }

@@ -22,6 +22,44 @@ fn shows_help() {
 }
 
 #[test]
+fn shows_version() {
+    let p = Command::new("cargo")
+        .arg("run")
+        .arg("--")
+        .arg("--version")
+        .output()
+        .expect("failed to spawn process");
+
+    let stdout = String::from_utf8(p.stdout).unwrap();
+    let stderr = String::from_utf8(p.stderr).unwrap();
+
+    assert!(
+        stdout.contains("try-rs"),
+        "version output should go to stdout"
+    );
+    assert!(
+        !stderr.contains("try-rs 0."),
+        "version should not appear on stderr"
+    );
+}
+
+#[test]
+fn invalid_shell_flag() {
+    let p = Command::new("cargo")
+        .arg("run")
+        .arg("--")
+        .arg("--shell")
+        .arg("invalid_shell")
+        .output()
+        .expect("failed to spawn process");
+
+    assert!(
+        !p.status.success(),
+        "invalid shell should exit with non-zero"
+    );
+}
+
+#[test]
 fn new_name() {
     // given
     let h = Harness::new(false);

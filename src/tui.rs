@@ -601,46 +601,28 @@ pub fn run_app(
 
                     let date_text = date_str.to_string();
                     let date_width = date_text.chars().count();
-                    let git_icon = if entry.is_git { " " } else { "" };
-                    let git_width = if entry.is_git { 2 } else { 0 };
-                    let worktree_icon = if entry.is_worktree { "󰙅 " } else { "" };
-                    let worktree_width = if entry.is_worktree { 2 } else { 0 };
-                    let worktree_lock_icon = if entry.is_worktree_locked { " " } else { "" };
-                    let worktree_lock_width = if entry.is_worktree_locked { 2 } else { 0 };
-                    let gitmodules_icon = if entry.is_gitmodules { " " } else { "" };
-                    let gitmodules_width = if entry.is_gitmodules { 2 } else { 0 };
-                    let mise_icon = if entry.is_mise { "󰬔 " } else { "" };
-                    let mise_width = if entry.is_mise { 2 } else { 0 };
-                    let cargo_icon = if entry.is_cargo { " " } else { "" };
-                    let cargo_width = if entry.is_cargo { 2 } else { 0 };
-                    let maven_icon = if entry.is_maven { " " } else { "" };
-                    let maven_width = if entry.is_maven { 2 } else { 0 };
-                    let flutter_icon = if entry.is_flutter { " " } else { "" };
-                    let flutter_width = if entry.is_flutter { 2 } else { 0 };
-                    let go_icon = if entry.is_go { " " } else { "" };
-                    let go_width = if entry.is_go { 2 } else { 0 };
-                    let python_icon = if entry.is_python { " " } else { "" };
-                    let python_width = if entry.is_python { 2 } else { 0 };
-                    let icon_width = 2;
+
+                    // Build icon list: (flag, icon_str, color)
+                    let icons: &[(bool, &str, Color)] = &[
+                        (entry.is_cargo,                " ", app.theme.icon_rust),
+                        (entry.is_maven,                " ", app.theme.icon_maven),
+                        (entry.is_flutter,              " ", app.theme.icon_flutter),
+                        (entry.is_go,                   " ", app.theme.icon_go),
+                        (entry.is_python,               " ", app.theme.icon_python),
+                        (entry.is_mise,                 "󰬔 ", app.theme.icon_mise),
+                        (entry.is_worktree,             "󰙅 ", app.theme.icon_worktree),
+                        (entry.is_worktree_locked,      " ", app.theme.icon_worktree_lock),
+                        (entry.is_gitmodules,           " ", app.theme.icon_gitmodules),
+                        (entry.is_git,                  " ", app.theme.icon_git),
+                    ];
+                    let icons_width: usize = icons.iter().filter(|(f, _, _)| *f).count() * 2;
+                    let icon_width = 2; // folder icon
 
                     let created_dt: chrono::DateTime<Local> = entry.created.into();
                     let created_text = created_dt.format("%Y-%m-%d").to_string();
                     let created_width = created_text.chars().count();
 
-                    let reserved = date_width
-                        + git_width
-                        + worktree_width
-                        + worktree_lock_width
-                        + gitmodules_width
-                        + mise_width
-                        + cargo_width
-                        + maven_width
-                        + flutter_width
-                        + go_width
-                        + python_width
-                        + icon_width
-                        + created_width
-                        + 2;
+                    let reserved = date_width + icons_width + icon_width + created_width + 2;
                     let available_for_name = width.saturating_sub(reserved);
                     let name_len = entry.display_name.chars().count();
 
@@ -652,49 +634,25 @@ pub fn run_app(
                         (
                             entry.display_name.clone(),
                             width.saturating_sub(
-                                icon_width
-                                    + created_width
-                                    + 1
-                                    + name_len
-                                    + date_width
-                                    + git_width
-                                    + worktree_width
-                                    + worktree_lock_width
-                                    + gitmodules_width
-                                    + mise_width
-                                    + cargo_width
-                                    + maven_width
-                                    + flutter_width
-                                    + go_width
-                                    + python_width,
+                                icon_width + created_width + 1 + name_len + date_width + icons_width,
                             ),
                         )
                     };
 
-                    let content = Line::from(vec![
+                    let mut spans = vec![
                         Span::styled(" 󰝰 ", Style::default().fg(app.theme.icon_folder)),
                         Span::styled(created_text, Style::default().fg(app.theme.list_date)),
                         Span::raw(format!(" {}", display_name)),
                         Span::raw(" ".repeat(padding)),
-                        Span::styled(cargo_icon, Style::default().fg(app.theme.icon_rust)),
-                        Span::styled(maven_icon, Style::default().fg(app.theme.icon_maven)),
-                        Span::styled(flutter_icon, Style::default().fg(app.theme.icon_flutter)),
-                        Span::styled(go_icon, Style::default().fg(app.theme.icon_go)),
-                        Span::styled(python_icon, Style::default().fg(app.theme.icon_python)),
-                        Span::styled(mise_icon, Style::default().fg(app.theme.icon_mise)),
-                        Span::styled(
-                            worktree_lock_icon,
-                            Style::default().fg(app.theme.icon_worktree_lock),
-                        ),
-                        Span::styled(worktree_icon, Style::default().fg(app.theme.icon_worktree)),
-                        Span::styled(
-                            gitmodules_icon,
-                            Style::default().fg(app.theme.icon_gitmodules),
-                        ),
-                        Span::styled(git_icon, Style::default().fg(app.theme.icon_git)),
-                        Span::styled(date_text, Style::default().fg(app.theme.list_date)),
-                    ]);
-                    ListItem::new(content)
+                    ];
+                    for &(flag, icon, color) in icons {
+                        if flag {
+                            spans.push(Span::styled(icon, Style::default().fg(color)));
+                        }
+                    }
+                    spans.push(Span::styled(date_text, Style::default().fg(app.theme.list_date)));
+
+                    ListItem::new(Line::from(spans))
                 })
                 .collect();
 

@@ -30,7 +30,7 @@ pub struct Cli {
     pub worktree: Option<String>,
 }
 
-#[derive(ValueEnum, Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(ValueEnum, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum Shell {
     Fish,
     Zsh,

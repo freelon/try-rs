@@ -73,57 +73,46 @@ pub fn get_base_config_dir() -> PathBuf {
     })
 }
 
-pub fn load_file_config_toml_if_exists() -> Option<Config> {
+/// Returns candidate config file paths in priority order.
+fn config_candidates() -> Vec<PathBuf> {
+    let config_name = get_file_config_toml_name();
+    let mut candidates = Vec::new();
+
     if let Some(env_dir) = std::env::var_os("TRY_CONFIG_DIR") {
-        let config_path = PathBuf::from(env_dir).join(get_file_config_toml_name());
-        if config_path.exists() {
-            if let Ok(contents) = fs::read_to_string(&config_path)
-                && let Ok(config) = toml::from_str::<Config>(&contents)
-            {
-                return Some(config);
-            }
-        }
+        candidates.push(PathBuf::from(env_dir).join(&config_name));
+    }
+    if let Some(dir) = dirs::config_dir() {
+        candidates.push(dir.join("try-rs").join(&config_name));
+    }
+    if let Some(home) = dirs::home_dir() {
+        candidates.push(home.join(".config").join("try-rs").join(&config_name));
     }
 
-    let config_dir_config_toml = dirs::config_dir()
-        .expect("Folder not found")
-        .join("try-rs")
-        .join(get_file_config_toml_name());
-
-    if config_dir_config_toml.exists() {
-        if let Ok(contents) = fs::read_to_string(&config_dir_config_toml)
-            && let Ok(config) = toml::from_str::<Config>(&contents)
-        {
-            return Some(config);
-        }
-    }
-
-    let home_dir_config_toml = dirs::home_dir()
-        .expect("Folder not found")
-        .join(".config")
-        .join("try-rs")
-        .join(get_file_config_toml_name());
-
-    if home_dir_config_toml.exists() {
-        if let Ok(contents) = fs::read_to_string(&home_dir_config_toml)
-            && let Ok(config) = toml::from_str::<Config>(&contents)
-        {
-            return Some(config);
-        }
-    }
-
-    None
+    candidates
 }
 
-pub fn load_configuration() -> (
-    PathBuf,
-    Theme,
-    Option<String>,
-    bool,
-    Option<PathBuf>,
-    Option<bool>,
-    Option<bool>,
-) {
+/// Finds the first existing config file path.
+fn find_config_path() -> Option<PathBuf> {
+    config_candidates().into_iter().find(|p| p.exists())
+}
+
+pub fn load_file_config_toml_if_exists() -> Option<Config> {
+    let path = find_config_path()?;
+    let contents = fs::read_to_string(&path).ok()?;
+    toml::from_str::<Config>(&contents).ok()
+}
+
+pub struct AppConfig {
+    pub tries_dir: PathBuf,
+    pub theme: Theme,
+    pub editor_cmd: Option<String>,
+    pub is_first_run: bool,
+    pub config_path: Option<PathBuf>,
+    pub apply_date_prefix: Option<bool>,
+    pub transparent_background: Option<bool>,
+}
+
+pub fn load_configuration() -> AppConfig {
     let default_path = dirs::home_dir()
         .expect("Folder not found")
         .join("work")
@@ -140,25 +129,7 @@ pub fn load_configuration() -> (
     let mut apply_date_prefix = None;
     let mut transparent_background = None;
 
-    let loaded_config_path = if let Some(path) = std::env::var_os("TRY_CONFIG_DIR")
-        .map(|p| PathBuf::from(p).join(get_file_config_toml_name()))
-        .filter(|p| p.exists())
-    {
-        Some(path)
-    } else if let Some(path) = dirs::config_dir()
-        .map(|p| p.join("try-rs").join(get_file_config_toml_name()))
-        .filter(|p| p.exists())
-    {
-        Some(path)
-    } else {
-        dirs::home_dir()
-            .map(|p| {
-                p.join(".config")
-                    .join("try-rs")
-                    .join(get_file_config_toml_name())
-            })
-            .filter(|p| p.exists())
-    };
+    let loaded_config_path = find_config_path();
 
     if let Some(config) = load_file_config_toml_if_exists() {
         if let Some(path_str) = config.tries_path
@@ -226,15 +197,15 @@ pub fn load_configuration() -> (
         is_first_run = true;
     }
 
-    (
-        final_path,
+    AppConfig {
+        tries_dir: final_path,
         theme,
         editor_cmd,
         is_first_run,
-        loaded_config_path,
+        config_path: loaded_config_path,
         apply_date_prefix,
         transparent_background,
-    )
+    }
 }
 
 pub fn save_config(

@@ -1,23 +1,15 @@
+use crate::cli::Shell;
 use crate::config::{get_base_config_dir, get_config_dir};
 use anyhow::Result;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
-#[derive(Debug)]
-pub enum ShellType {
-    Fish,
-    Zsh,
-    Bash,
-    PowerShell,
-    NuShell,
-}
-
 /// Returns the shell integration script content for the given shell type.
 /// This is used by --setup-stdout to print the content to stdout.
-pub fn get_shell_content(shell: &ShellType) -> &'static str {
+pub fn get_shell_content(shell: &Shell) -> &'static str {
     match shell {
-        ShellType::Fish => {
+        Shell::Fish => {
             r#"function try-rs
     # Pass flags/options directly to stdout without capturing
     for arg in $argv
@@ -37,7 +29,7 @@ pub fn get_shell_content(shell: &ShellType) -> &'static str {
 end
 "#
         }
-        ShellType::Zsh => {
+        Shell::Zsh => {
             r#"try-rs() {
     # Pass flags/options directly to stdout without capturing
     for arg in "$@"; do
@@ -57,7 +49,7 @@ end
 }
 "#
         }
-        ShellType::Bash => {
+        Shell::Bash => {
             r#"try-rs() {
     # Pass flags/options directly to stdout without capturing
     for arg in "$@"; do
@@ -77,7 +69,7 @@ end
 }
 "#
         }
-        ShellType::PowerShell => {
+        Shell::PowerShell => {
             r#"# try-rs integration for PowerShell
 function try-rs {
     # Pass flags/options directly to stdout without capturing
@@ -98,7 +90,7 @@ function try-rs {
 }
 "#
         }
-        ShellType::NuShell => {
+        Shell::NuShell => {
             r#"def --wrapped try-rs [...args] {
     # Pass flags/options directly to stdout without capturing
     for arg in $args {
@@ -123,254 +115,138 @@ function try-rs {
     }
 }
 
-pub fn get_shell_integration_path(shell: &ShellType) -> PathBuf {
+pub fn get_shell_integration_path(shell: &Shell) -> PathBuf {
     let config_dir = match shell {
-        ShellType::Fish => get_base_config_dir(),
+        Shell::Fish => get_base_config_dir(),
         _ => get_config_dir(),
     };
 
     match shell {
-        ShellType::Fish => config_dir
+        Shell::Fish => config_dir
             .join("fish")
             .join("functions")
             .join("try-rs.fish"),
-        ShellType::Zsh => config_dir.join("try-rs.zsh"),
-        ShellType::Bash => config_dir.join("try-rs.bash"),
-        ShellType::PowerShell => config_dir.join("try-rs.ps1"),
-        ShellType::NuShell => config_dir.join("try-rs.nu"),
+        Shell::Zsh => config_dir.join("try-rs.zsh"),
+        Shell::Bash => config_dir.join("try-rs.bash"),
+        Shell::PowerShell => config_dir.join("try-rs.ps1"),
+        Shell::NuShell => config_dir.join("try-rs.nu"),
     }
 }
 
-pub fn is_shell_integration_configured(shell: &ShellType) -> bool {
+pub fn is_shell_integration_configured(shell: &Shell) -> bool {
     get_shell_integration_path(shell).exists()
 }
 
-pub fn setup_fish() -> Result<()> {
-    let config_dir = dirs::config_dir().unwrap_or_else(|| {
-        dirs::home_dir()
-            .expect("Could not find home directory")
-            .join(".config")
-    });
-
-    let fish_functions_dir = config_dir.join("fish").join("functions");
-
-    if !fish_functions_dir.exists() {
-        fs::create_dir_all(&fish_functions_dir)?;
-    }
-
-    let file_path = fish_functions_dir.join("try-rs.fish");
-
-    fs::write(&file_path, get_shell_content(&ShellType::Fish))?;
-    eprintln!("Fish function created at: {}", file_path.display());
-    eprintln!(
-        "You may need to restart your shell or run 'source {}' to apply changes.",
-        file_path.display()
-    );
-
-    Ok(())
-}
-
-pub fn setup_zsh() -> Result<()> {
-    let config_dir = dirs::config_dir().unwrap_or_else(|| {
-        dirs::home_dir()
-            .expect("Could not find home directory")
-            .join(".config")
-    });
-
-    let app_config_dir = config_dir.join("try-rs");
-
-    if !app_config_dir.exists() {
-        fs::create_dir_all(&app_config_dir)?;
-    }
-
-    let file_path = app_config_dir.join("try-rs.zsh");
-
-    fs::write(&file_path, get_shell_content(&ShellType::Zsh))?;
-    eprintln!("ZSH function file created at: {}", file_path.display());
-
-    let home_dir = dirs::home_dir().expect("Could not find home directory");
-    let zshrc_path = home_dir.join(".zshrc");
-    let source_cmd = format!("source '{}'", file_path.display());
-
-    if zshrc_path.exists() {
-        let zshrc_content = fs::read_to_string(&zshrc_path)?;
-        if !zshrc_content.contains(&source_cmd) {
-            use std::io::Write;
-            let mut file = fs::OpenOptions::new().append(true).open(&zshrc_path)?;
+/// Appends a source command to an RC file if not already present.
+fn append_source_to_rc(rc_path: &std::path::Path, source_cmd: &str) -> Result<()> {
+    if rc_path.exists() {
+        let content = fs::read_to_string(rc_path)?;
+        if !content.contains(source_cmd) {
+            let mut file = fs::OpenOptions::new().append(true).open(rc_path)?;
             writeln!(file, "\n# try-rs integration")?;
             writeln!(file, "{}", source_cmd)?;
-            eprintln!("Added configuration to ~/.zshrc");
+            eprintln!("Added configuration to {}", rc_path.display());
         } else {
-            eprintln!("Configuration already present in ~/.zshrc");
+            eprintln!("Configuration already present in {}", rc_path.display());
         }
     } else {
-        eprintln!("You need to source this file in your ~/.zshrc:");
+        eprintln!("You need to add the following line to {}:", rc_path.display());
         eprintln!("{}", source_cmd);
     }
-
     Ok(())
 }
 
-pub fn setup_bash() -> Result<()> {
-    let config_dir = dirs::config_dir().unwrap_or_else(|| {
-        dirs::home_dir()
-            .expect("Could not find home directory")
-            .join(".config")
-    });
-
-    let app_config_dir = config_dir.join("try-rs");
-
-    if !app_config_dir.exists() {
-        fs::create_dir_all(&app_config_dir)?;
-    }
-
-    let file_path = app_config_dir.join("try-rs.bash");
-
-    fs::write(&file_path, get_shell_content(&ShellType::Bash))?;
-    eprintln!("Bash function file created at: {}", file_path.display());
-
-    let home_dir = dirs::home_dir().expect("Could not find home directory");
-    let bashrc_path = home_dir.join(".bashrc");
-    let source_cmd = format!("source '{}'", file_path.display());
-
-    if bashrc_path.exists() {
-        let bashrc_content = fs::read_to_string(&bashrc_path)?;
-        if !bashrc_content.contains(&source_cmd) {
-            use std::io::Write;
-            let mut file = fs::OpenOptions::new().append(true).open(&bashrc_path)?;
-            writeln!(file, "\n# try-rs integration")?;
-            writeln!(file, "{}", source_cmd)?;
-            eprintln!("Added configuration to ~/.bashrc");
-        } else {
-            eprintln!("Configuration already present in ~/.bashrc");
-        }
-    } else {
-        eprintln!("You need to source this file in your ~/.bashrc:");
-        eprintln!("{}", source_cmd);
-    }
-
-    Ok(())
-}
-
-pub fn setup_powershell() -> Result<()> {
-    let config_dir = dirs::config_dir().unwrap_or_else(|| {
-        dirs::home_dir()
-            .expect("Could not find home directory")
-            .join(".config")
-    });
-    let app_config_dir = config_dir.join("try-rs");
-    if !app_config_dir.exists() {
-        fs::create_dir_all(&app_config_dir)?;
-    }
-
-    let file_path = app_config_dir.join("try-rs.ps1");
-
-    fs::write(&file_path, get_shell_content(&ShellType::PowerShell))?;
-    eprintln!(
-        "PowerShell function file created at: {}",
-        file_path.display()
-    );
-
-    let home_dir = dirs::home_dir().expect("Could not find home directory");
-    let profile_path_ps7 = home_dir
-        .join("Documents")
-        .join("PowerShell")
-        .join("Microsoft.PowerShell_profile.ps1");
-    let profile_path_ps5 = home_dir
-        .join("Documents")
-        .join("WindowsPowerShell")
-        .join("Microsoft.PowerShell_profile.ps1");
-
-    let profile_path = if profile_path_ps7.exists() {
-        profile_path_ps7
-    } else if profile_path_ps5.exists() {
-        profile_path_ps5
-    } else {
-        profile_path_ps7
-    };
-
-    if let Some(parent) = profile_path.parent()
+/// Writes the shell integration file and returns its path.
+fn write_shell_integration(shell: &Shell) -> Result<std::path::PathBuf> {
+    let file_path = get_shell_integration_path(shell);
+    if let Some(parent) = file_path.parent()
         && !parent.exists()
     {
         fs::create_dir_all(parent)?;
     }
-
-    let source_cmd = format!(". '{}'", file_path.display());
-
-    if profile_path.exists() {
-        let profile_content = fs::read_to_string(&profile_path)?;
-        if !profile_content.contains(&source_cmd) {
-            use std::io::Write;
-            let mut file = fs::OpenOptions::new().append(true).open(&profile_path)?;
-            writeln!(file, "\n# try-rs integration")?;
-            writeln!(file, "{}", source_cmd)?;
-            eprintln!("Added configuration to {}", profile_path.display());
-        } else {
-            eprintln!(
-                "Configuration already present in {}",
-                profile_path.display()
-            );
-        }
-    } else {
-        let mut file = fs::File::create(&profile_path)?;
-        writeln!(file, "# try-rs integration")?;
-        writeln!(file, "{}", source_cmd)?;
-        eprintln!(
-            "PowerShell profile created and configured at: {}",
-            profile_path.display()
-        );
-    }
-
-    eprintln!(
-        "You may need to restart your shell or run '. {}' to apply changes.",
-        profile_path.display()
-    );
-    eprintln!(
-        "If you get an error about running scripts, you may need to run: Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned"
-    );
-
-    Ok(())
+    fs::write(&file_path, get_shell_content(shell))?;
+    eprintln!("{:?} function file created at: {}", shell, file_path.display());
+    Ok(file_path)
 }
 
-pub fn setup_nushell() -> Result<()> {
-    let config_dir = dirs::config_dir()
-        .expect("Could not find config directory")
-        .join("nushell");
+/// Sets up shell integration for the given shell.
+pub fn setup_shell(shell: &Shell) -> Result<()> {
+    let file_path = write_shell_integration(shell)?;
+    let home_dir = dirs::home_dir().expect("Could not find home directory");
 
-    let app_config_dir = dirs::config_dir()
-        .expect("Could not find config directory")
-        .join("try-rs");
-
-    if !app_config_dir.exists() {
-        fs::create_dir_all(&app_config_dir)?;
-    }
-
-    let file_path = app_config_dir.join("try-rs.nu");
-
-    fs::write(&file_path, get_shell_content(&ShellType::NuShell))?;
-    eprintln!("Nushell function created at: {}", file_path.display());
-
-    let nu_config_path = config_dir.join("config.nu");
-    let source_cmd = format!("source '{}'", file_path.display());
-
-    if nu_config_path.exists() {
-        let nu_content = fs::read_to_string(&nu_config_path)?;
-        if !nu_content.contains(&source_cmd) {
-            use std::io::Write;
-            let mut file = fs::OpenOptions::new().append(true).open(&nu_config_path)?;
-            writeln!(file, "\n# try-rs integration")?;
-            writeln!(file, "{}", source_cmd)?;
-            eprintln!("Added configuration to {}", nu_config_path.display());
-        } else {
+    match shell {
+        Shell::Fish => {
             eprintln!(
-                "Configuration already present in {}",
-                nu_config_path.display()
+                "You may need to restart your shell or run 'source {}' to apply changes.",
+                file_path.display()
             );
         }
-    } else {
-        eprintln!("Could not find config.nu at {}", nu_config_path.display());
-        eprintln!("Please add the following line manually:");
-        eprintln!("{}", source_cmd);
+        Shell::Zsh => {
+            let source_cmd = format!("source '{}'", file_path.display());
+            append_source_to_rc(&home_dir.join(".zshrc"), &source_cmd)?;
+        }
+        Shell::Bash => {
+            let source_cmd = format!("source '{}'", file_path.display());
+            append_source_to_rc(&home_dir.join(".bashrc"), &source_cmd)?;
+        }
+        Shell::PowerShell => {
+            let profile_path_ps7 = home_dir
+                .join("Documents")
+                .join("PowerShell")
+                .join("Microsoft.PowerShell_profile.ps1");
+            let profile_path_ps5 = home_dir
+                .join("Documents")
+                .join("WindowsPowerShell")
+                .join("Microsoft.PowerShell_profile.ps1");
+            let profile_path = if profile_path_ps7.exists() {
+                profile_path_ps7
+            } else if profile_path_ps5.exists() {
+                profile_path_ps5
+            } else {
+                profile_path_ps7
+            };
+
+            if let Some(parent) = profile_path.parent()
+                && !parent.exists()
+            {
+                fs::create_dir_all(parent)?;
+            }
+
+            let source_cmd = format!(". '{}'", file_path.display());
+            if profile_path.exists() {
+                append_source_to_rc(&profile_path, &source_cmd)?;
+            } else {
+                let mut file = fs::File::create(&profile_path)?;
+                writeln!(file, "# try-rs integration")?;
+                writeln!(file, "{}", source_cmd)?;
+                eprintln!(
+                    "PowerShell profile created and configured at: {}",
+                    profile_path.display()
+                );
+            }
+
+            eprintln!(
+                "You may need to restart your shell or run '. {}' to apply changes.",
+                profile_path.display()
+            );
+            eprintln!(
+                "If you get an error about running scripts, you may need to run: Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned"
+            );
+        }
+        Shell::NuShell => {
+            let nu_config_path = dirs::config_dir()
+                .expect("Could not find config directory")
+                .join("nushell")
+                .join("config.nu");
+            let source_cmd = format!("source '{}'", file_path.display());
+            if nu_config_path.exists() {
+                append_source_to_rc(&nu_config_path, &source_cmd)?;
+            } else {
+                eprintln!("Could not find config.nu at {}", nu_config_path.display());
+                eprintln!("Please add the following line manually:");
+                eprintln!("{}", source_cmd);
+            }
+        }
     }
 
     Ok(())
