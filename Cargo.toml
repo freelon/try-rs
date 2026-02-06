@@ -64,3 +64,18 @@ panic = "abort"   # Remove traceback information
 name = "integration_test"
 path = "test/integration_test.rs"
 test = true
+
+[[test]]
+name = "utils_test"
+path = "test/utils_test.rs"
+test = true
+
+[[test]]
+name = "config_test"
+path = "test/config_test.rs"
+test = true
+
+[[test]]
+name = "themes_test"
+path = "test/themes_test.rs"
+test = true
