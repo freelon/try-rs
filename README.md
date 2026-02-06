@@ -35,7 +35,7 @@ A blazing fast, Rust-based workspace manager for your temporary experiments.
 | **Git Integration**      | Auto-clones URLs (`try-rs <url>`) and marks repos with ().                            |
 | **Content Preview**      | Inspect files inside a folder before entering it.                                      |
 | **Editor Integration**   | Open experiments directly in your editor (`Ctrl+E`).                                   |
-| **Theming**              | Switch themes at runtime (`Ctrl+T`) or customize via config.                           |
+| **Theming**              | Switch themes at runtime (`Ctrl+T`) or set a default in config.                        |
 | **Safe Deletion**        | Delete old experiments via UI with confirmation (`Ctrl+D`).                            |
 | **Configurable**         | Supports XDG Base Directory (view section [Configuration](#configuration)).            |
 | **Multi-Shell Support**  | Supports Fish, Zsh, Bash, Power Shell and Nushell.                                     |
@@ -211,62 +211,6 @@ You can use any of these theme names in your configuration:
 - `"Matrix"`
 - `"Tron"`
 
-**Custom Colors (Optional):**
-
-If you want to create a fully custom theme, you can define individual colors instead of using the `theme` option:
-
-```toml
-# config.toml
-tries_path = "~/Development/playground"
-editor = "code"
-
-[colors]
-# Background color (optional - omit for transparent)
-background = "#1E1E2E"
-
-# UI Colors
-title_try = "Magenta"
-title_rs = "White"
-search_title = "Green"
-search_border = "Gray"
-folder_title = "Yellow"
-folder_border = "Gray"
-disk_title = "Orange"
-disk_border = "Gray"
-preview_title = "Blue"
-preview_border = "Gray"
-legends_title = "Purple"
-legends_border = "Gray"
-list_date = "Blue"
-list_highlight_bg = "Magenta"
-list_highlight_fg = "Black"
-helpers_colors = "DarkGray"
-status_message = "Yellow"
-popup_bg = "DarkGray"
-popup_text = "LightRed"
-
-# Icons Colors
-icon_rust = "Red"
-icon_maven = "Orange"
-icon_flutter = "Cyan"
-icon_go = "Cyan"
-icon_python = "Yellow"
-icon_mise = "Orange"
-icon_worktree = "Green"
-icon_worktree_lock = "Gray"
-icon_gitmodules = "Purple"
-icon_git = "Red"
-icon_folder = "Yellow"
-icon_file = "Gray"
-```
-
-**Available Color Names:**
-
-You can use the following color names in your custom color configuration:
-
-- Basic colors: `Black`, `Red`, `Green`, `Yellow`, `Blue`, `Magenta`, `Cyan`, `Gray`, `DarkGray`, `LightRed`, `LightGreen`, `LightYellow`, `LightBlue`, `LightMagenta`, `LightCyan`, `White`
-- RGB colors: You can also use RGB values like `"#FF5733"` or as a table: `{ r = 255, g = 87, b = 51 }`
-
 ### 3. Environment Variables
 
 You can also configure **try-rs** using environment variables:
@@ -324,8 +268,6 @@ You can switch between themes at runtime by pressing `Ctrl+T`. The following the
 - **Black & White**
 - **Matrix**
 - **Tron**
-
-You can also define a custom theme in your `config.toml`.
 
 ## CLI Commands
 
