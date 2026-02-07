@@ -259,18 +259,10 @@ fn create_git_origin(h: &Harness) -> Result<PathBuf, String> {
     fs::write(content_file, content).expect("could not create content file");
 
     command(&dir, "git", &["init"])?;
+    command(&dir, "git", &["config", "user.email", "test@test.internal"])?;
+    command(&dir, "git", &["config", "user.name", "Test"])?;
     command(&dir, "git", &["add", "."])?;
-    command(
-        &dir,
-        "git",
-        &[
-            "commit",
-            "-m",
-            "init",
-            "--author",
-            "Test <test@test.internal>",
-        ],
-    )?;
+    command(&dir, "git", &["commit", "-m", "init"])?;
 
     Ok(dir)
 }
