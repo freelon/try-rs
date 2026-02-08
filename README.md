@@ -106,6 +106,12 @@ sudo apt install ./try-rs_X.Y.Z-1_amd64.deb
 - Download the Windows build from the Releases downloads: <https://github.com/tassiovirginio/try-rs/releases/download/>
 - Unzip or place the binary somewhere on your `PATH` (e.g., add the folder to the System Environment `Path`) so you can run `try-rs` from any terminal (PowerShell, Command Prompt).
 
+### Homebrew
+
+```bash
+brew install try-rs
+```
+
 ### Nix Install (flakes)
 
 ```bash
